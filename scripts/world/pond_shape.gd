@@ -52,6 +52,10 @@ const GRASS_U := 0.42        # how far down the bank (0..1) the grass runs befor
 const STONE_LEVEL := 0.68    # the field's level the shore stones sit on (down the bank, at the waterline)
 const STONE_STEP := 0.2      # cells between the points tried along it
 const STONE_GAP := 0.42      # cells at least between two stones
+## How far round a garden rock's cell centre no small stone lies, by its shape (the rest ROCK_CLEAR):
+## the small stones crowding a big rock's foot read as spiky clutter (the user, 2026-11-28, Kajika-yu's west shore).
+const ROCK_CLEAR := 0.9
+const ROCK_CLEAR_SHAPES := {"boulder": 1.8, "granite": 1.6}
 const REFLECT := Color("1d4a36")   # the wood's green mirrored in the hot spring near its far banks
 const REFLECT_REACH := 2.2   # cells out from the far banks the mirrored wood reaches
 const REFLECT_MOST := 0.55   # how far the water takes its colour right under the bank
@@ -62,6 +66,7 @@ var bounds := Rect2i()       # the cells the shape reaches (its water cells grow
 var picture := Rect2i()      # the cells the repainted picture covers (bounds and the lawn's edge round it)
 var lawn: Dictionary = {}    # Vector2i -> true: grass or water cells (the lawn) near the pond
 var swaps: Dictionary = {}   # Vector2i -> its tile: grass and gravel cells in `picture` whose picture follows the lawn's curve
+var rocks: Array = []        # [centre (cells), clear reach (cells)]: the hot spring's garden rocks, no small stone at their foot
 var _stones: Array = []      # shore_stones, worked out once
 
 static var _kept: Dictionary = {}
@@ -84,6 +89,10 @@ static func of(m: MapData, look := LOOK) -> PondShape:
 		if s.cells.is_empty():
 			_kept[id] = null
 		else:
+			for pr in m.props if look == "onsen" else []:   # the hot spring's big rocks (the temple pond keeps its stones as they were)
+				if str(pr.get("kind", "")) == "garden_rock":
+					var at := Vector2(pr.cell) + Vector2(0.5, 0.5)
+					s.rocks.append([at, float(ROCK_CLEAR_SHAPES.get(str(pr.get("shape", "")), ROCK_CLEAR))])
 			var r := Rect2i(s.cells.keys()[0], Vector2i.ONE)
 			for c in s.cells:
 				r = r.merge(Rect2i(c, Vector2i.ONE))
@@ -279,7 +288,8 @@ static func _soft_noise(at: Vector2i) -> float:
 
 ## Small stones along the waterline: {pos: Vector2 (cells), size: 0..1, seed}. Points every
 ## STONE_STEP cells over the shape where the field crosses STONE_LEVEL, kept by a hash of the spot
-## (a little over half of them) and at least STONE_GAP apart. Worked out once.
+## (a little over half of them) and at least STONE_GAP apart, none at a garden rock's foot (rocks,
+## ROCK_CLEAR). Worked out once.
 func shore_stones() -> Array:
 	if not _stones.is_empty() or cells.is_empty():
 		return _stones
@@ -294,6 +304,10 @@ func shore_stones() -> Array:
 			if h > int(STYLES[look].keep):
 				continue
 			var close := false
+			for rk in rocks:
+				if (rk[0] as Vector2).distance_to(p) < float(rk[1]):
+					close = true
+					break
 			for st in _stones:
 				if (st.pos as Vector2).distance_to(p) < STONE_GAP:
 					close = true

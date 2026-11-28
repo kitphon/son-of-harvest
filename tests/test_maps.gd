@@ -467,6 +467,13 @@ func _soft_pond() -> void:
 		for b in range(a + 1, stones.size()):
 			gaps = gaps and (stones[a].pos as Vector2).distance_to(stones[b].pos) >= PondShape.STONE_GAP
 	check(stones.size() > 20 and ok_stones and gaps, "shore stones: %d along the waterline, each on it, none crowding another" % stones.size())
+	var onsen := PondShape.of(MapManager.data("kajika_yu"), "onsen")
+	var at_rock := 0
+	for st in onsen.shore_stones():
+		for rk in onsen.rocks:
+			if (rk[0] as Vector2).distance_to(st.pos) < float(rk[1]):
+				at_rock += 1
+	check(onsen.rocks.size() > 10 and onsen.shore_stones().size() > 10 and at_rock == 0, "Kajika-yu: no small shore stone at a garden rock's foot (%d rocks, %d stones, %d too close)" % [onsen.rocks.size(), onsen.shore_stones().size(), at_rock])
 	var stone_mw := FileAccess.get_file_as_string("res://scripts/world3d/map_world.gd")
 	check("_make_pond_stones" in stone_mw and "pond.shore_stones()" in FileAccess.get_file_as_string("res://scripts/world/map_view.gd"), "both views lay the shore stones")
 	var corner := pic.get_pixel(20 * 16 - o.x, 22 * 16 - o.y)

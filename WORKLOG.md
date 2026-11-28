@@ -10,6 +10,22 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-28 — Kajika-yu: no small shore stones at a big rock's foot
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (the user circled the "spiky grass edge" on the west bank by the boulder and the granite):
+  enlarged frames showed it was PondShape's small shore stones, their mossy tops reading as green
+  spikes, crowded at the big rocks' foot: two at (3.6, 7.2) and (3.4, 7.6) west of the boulder
+  [4, 8], one at (5.2, 10.6) south of the granite [4, 9]. The hot spring's pond now keeps a list
+  of its map's garden rocks (PondShape.rocks) and lays no small stone within ROCK_CLEAR of one
+  (boulder 1.8 cells, granite 1.6, the rest 0.9): both views read shore_stones, so both change.
+  Only the `onsen` look: the temple pond's stones would drop too and its density test against
+  Ogura pond failed, so it keeps them as they were. 23 small stones stay round the hot spring.
+- Checked: test_maps (a new check: no stone of Kajika-yu's within a rock's clear reach)
+  `test_maps: OK (0 failed)`; all 46 tests/test_*.gd print `OK (0 failed)`. Frames of the west bank by
+  day (12:00) and night (21:00) wading left from `kajika_yu@pool`: the small stones gone, the
+  bank one line. Smoke runs (title, `--demo`, town, mine 3, the soak at the pool): 0 ERROR lines;
+  windowed `--quit-after 150`: exit 0.
+
 ## 2026-11-28 — Kajika-yu: no rise before the bathing pose (a cut key)
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done (the user, after the last fix: "it's still the same"): a frame trace (a throwaway print in
