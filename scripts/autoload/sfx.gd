@@ -95,7 +95,7 @@ func _process(delta: float) -> void:
 	var m := Game.maps.current()
 	_target = AmbientPicker.pick(ambient_rules, Game.weather_look(Game.weather_today, Game.season_name()),
 			Game.season_name(), Game.hour, m.ambient if m != null else "outdoor", Game.maps.id,
-			water_distance()) if Game.clock_running else {}
+			water_distance(), prop_distances(m)) if Game.clock_running else {}
 	var cicadas := CicadaRules.sound_now(Game, m)   # the summer chorus and the evening cicada
 	for key in cicadas:
 		_target[key] = maxf(float(_target.get(key, 0.0)), float(cicadas[key]))
@@ -395,6 +395,24 @@ func water_distance() -> float:
 	for c in _water_cells:
 		best = minf(best, feet.distance_to(feet.clamp(Vector2(c), Vector2(c) + Vector2.ONE)))   # to its nearest edge
 	return best
+
+
+## Cells from the farmer's feet to the nearest prop of each kind an ambient rule's `near_prop`
+## names (kind -> cells; a kind not on map `m` left out). For the bamboo spout's pouring.
+func prop_distances(m: MapData) -> Dictionary:
+	var out := {}
+	if m == null:
+		return out
+	var feet: Vector2 = Game.maps.pos / MapManager.T
+	for r in ambient_rules:
+		if not r.has("near_prop"):
+			continue
+		var kind := str(r.near_prop.get("kind", ""))
+		for p in m.props:
+			if str(p.get("kind", "")) == kind:
+				var at := Vector2(p.cell) + Vector2(0.5, 0.5)
+				out[kind] = minf(float(out.get(kind, INF)), feet.distance_to(at))
+	return out
 
 
 ## Ambient loops wanted right now (loop key -> level), for checks.

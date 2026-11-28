@@ -9,11 +9,12 @@ extends RefCounted
 
 # Its own names and colours (BathProps in 3D takes them from here): the flat view is loaded by
 # headless tests, which must not pull in the 3D scripts (they need the Game autoload).
-const KINDS: Array[String] = ["yubune", "kran", "milk_fridge", "basket_shelf", "bench", "getabako", "bath_noren", "bath_mural", "glass_door", "onsen", "bath_hut", "bamboo_screen", "oke", "bath_pavilion", "yukimi_doro"]
+const KINDS: Array[String] = ["yubune", "kran", "milk_fridge", "basket_shelf", "bench", "getabako", "bath_noren", "bath_mural", "glass_door", "onsen", "bath_hut", "bamboo_screen", "oke", "bath_pavilion", "yukimi_doro", "kakehi"]
 const OKE := Color("d8b884")   # the bathing bucket's cypress
 const CEDAR := Color("6a4a34")
 const BARK := Color("4e3a2c")
 const CULM := Color("a8a464")
+const SPOUT_CULM := Color("6c7a3e")   # the bamboo spout's culm, weathered green (the screen's pale CULM read as a yellow rod over the water)
 const GLASS := Color(0.78, 0.88, 0.9, 0.55)
 const WATER_COLOR := Color("5fa6a2")
 const STONE_CAP := Color("cfc9bc")
@@ -24,9 +25,11 @@ const CAP := Color("c8a060")
 const STRAW := Color("d8c088")
 
 
-## Prop `kind` over `r` (pixels) on `c`.
-static func draw(c: CanvasItem, kind: String, r: Rect2) -> void:
+## Prop `kind` over `r` (pixels) on `c` (`p` the prop, for the spout's way).
+static func draw(c: CanvasItem, kind: String, r: Rect2, p := {}) -> void:
 	match kind:
+		"kakehi":
+			_kakehi(c, r, p)
 		"yubune":
 			_tub(c, r)
 		"onsen":
@@ -105,6 +108,38 @@ static func draw(c: CanvasItem, kind: String, r: Rect2) -> void:
 			c.draw_rect(Rect2(r.position.x + 3, floorf(r.get_center().y), r.size.x - 6, 1), Color("6a4a30"))
 		"bath_mural":
 			c.draw_texture_rect(PlaceholderArt.tex("bath:mural"), Rect2(r.position.x + 1, r.position.y + 2, r.size.x - 2, r.size.y - 4), false)
+
+
+## The bamboo spout from above (Kakehi's places): its stone at the back, the culm out over the
+## water with a lit top line and dark nodes, the stand's crossed legs either side, the stream's
+## white where it falls and the foam round it.
+static func _kakehi(c: CanvasItem, r: Rect2, p: Dictionary) -> void:
+	var at := Kakehi.places(p if not p.is_empty() else {"cell": [0, 0]})
+	var t := r.size.x
+	var o := r.position - Vector2(p.get("cell", [0, 0])[0], p.get("cell", [0, 0])[1]) * t   # the map's pixel origin
+	var px := func(cells: Vector2) -> Vector2: return (o + cells * t).floor()
+	var d: Vector2 = at.dir
+	var back: Vector2 = px.call(at.back)
+	var mouth: Vector2 = px.call(at.mouth)
+	var stand: Vector2 = px.call(at.stand)
+	var side := Vector2(-d.y, d.x)
+	for k in [-3, 3]:   # the stand's legs, out either side
+		var leg: Vector2 = stand + side * k
+		c.draw_rect(Rect2(leg, Vector2.ONE), SPOUT_CULM.darkened(0.25))
+	var n := int(back.distance_to(mouth))
+	for i in n + 1:
+		var q := back.lerp(mouth, float(i) / maxf(n, 1))
+		c.draw_rect(Rect2(q - (side.abs() * 1.0), Vector2.ONE + side.abs() * 2.0), SPOUT_CULM)
+		c.draw_rect(Rect2(q - side.abs(), Vector2.ONE), SPOUT_CULM.lightened(0.25))   # the lit top line
+		if i > 0 and i % 6 == 0:
+			c.draw_rect(Rect2(q - side.abs(), Vector2.ONE + side.abs() * 2.0), SPOUT_CULM.darkened(0.3))   # a node
+	c.draw_rect(Rect2(back - Vector2(4, 3), Vector2(8, 7)), Color("6a675f"))   # its stone
+	c.draw_rect(Rect2(back - Vector2(4, 3), Vector2(8, 1)), Color("85817a"))
+	c.draw_rect(Rect2(back - Vector2(2, 2), Vector2(4, 2)), Color("5f7a3a"))
+	var land: Vector2 = px.call(at.landing)
+	c.draw_rect(Rect2(land - Vector2(2, 1), Vector2(5, 3)), Color(0.95, 0.98, 0.97, 0.55))   # the foam
+	c.draw_rect(Rect2(mouth.lerp(land, 0.5), Vector2(1, 1)), Color(0.9, 0.96, 0.96, 0.8))   # the stream
+	c.draw_rect(Rect2(land, Vector2(1, 1)), Color.WHITE)
 
 
 ## The tub: tiled sides with a pale cap, the water inside with ripples and a little steam.

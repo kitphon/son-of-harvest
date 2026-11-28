@@ -9,9 +9,10 @@ extends RefCounted
 ## loop key -> level for the loops that should sound now (silent loops are left out).
 ## A rule without "places" is for outdoors only; one with "maps" only for those map ids; one
 ## with "near" (cells) only within that distance of water (`water` cells away, < 0 = none on
-## this map), fading out towards the edge.
+## this map), fading out towards the edge; one with "near_prop" {kind, radius} only within `radius`
+## cells of a prop of that kind (`props`: kind -> cells away, a kind not there left out), fading the same.
 static func pick(rules: Array, look: String, season_id: String, hour: int, place := "outdoor",
-		map_id := "", water := -1.0) -> Dictionary:
+		map_id := "", water := -1.0, props := {}) -> Dictionary:
 	var levels := {}
 	for r in rules:
 		if not (place in r.get("places", ["outdoor"])):
@@ -27,6 +28,8 @@ static func pick(rules: Array, look: String, season_id: String, hour: int, place
 		var level := float(r.get("level", 1.0))
 		if r.has("near"):
 			level *= near_level(water, float(r.near))
+		if r.has("near_prop"):
+			level *= near_level(float(props.get(str(r.near_prop.get("kind", "")), -1.0)), float(r.near_prop.get("radius", 0.0)))
 		if level > float(levels.get(r.loop, 0.0)):
 			levels[r.loop] = level
 	return levels

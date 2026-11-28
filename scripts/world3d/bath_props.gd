@@ -26,6 +26,9 @@ extends RefCounted
 ## doorway hung with the noren, a gable roof of cedar shingles with its gable to the water, pale
 ## bargeboards and a dark name board under the gable, two stone steps, its doorway lit at night;
 ## `yukimi_doro` the snow-viewing lantern with its wide hat, standing on a pale rock out in the water.
+## `kakehi` (2026-11-28) the bamboo spout on the bank pouring into the pool (Kakehi's places): a culm
+## out of a mossy stone, its nodes darker, on a crossed bamboo stand bound with cord, its open end
+## over the water; the falling stream, its foam and rings move, so KakehiFlow makes them apart.
 
 const HEIGHT := 5.2          # the top of the lip, world units (a cell is 1)
 const SHAFT := Color("8c8174")
@@ -47,6 +50,7 @@ const ONSEN_WATER := WaterSurface.LIFT - SunkenGround.DROP   # the hot spring's 
 const CEDAR := BathLook.CEDAR
 const BARK := BathLook.BARK
 const CULM := BathLook.CULM
+const SPOUT_CULM := BathLook.SPOUT_CULM   # the spout's weathered green culm (kakehi)
 const CORD := Color("2a2420")
 const OKE := BathLook.OKE
 const PAVILION_WOOD := Color("8a6444")
@@ -98,6 +102,7 @@ static func prop(w: FarmWorld, p: Dictionary, mid: Vector3, r: Rect2, snowy := f
 		"oke": _oke(parts, r, snowy)
 		"bath_pavilion": _pavilion(w, parts, r, snowy)
 		"yukimi_doro": _yukimi(w, parts, r, snowy)
+		"kakehi": _kakehi(parts, p, snowy)
 		"yubune": _yubune(parts, r)
 		"kran": _kran(parts, r)
 		"milk_fridge": _milk_fridge(parts, mid)
@@ -453,3 +458,54 @@ static func _yukimi(w: FarmWorld, p: FarmProps.Parts, r: Rect2, snowy: bool) -> 
 	if sn != null:
 		Shrine.lathe(sn, hat + Vector3(0, 0.02, 0), [Vector2(0.5, 0.1), Vector2(0.15, 0.25)], 6)
 	w.lit_lamp(base + Vector3(0, 0.39, 0))
+
+
+## The bamboo spout (Kakehi): a mossy stone at the back of its cell, the culm out of it sloping
+## down over the bank to its open end over the water, darker nodes along it, a dark mouth, and a
+## crossed stand of two thin culms bound with cord under it near the shore. Snow on the stone and
+## along the culm's top (`snowy`).
+static func _kakehi(p: FarmProps.Parts, prop: Dictionary, snowy: bool) -> void:
+	var at := Kakehi.places(prop)
+	var d: Vector2 = at.dir
+	var sn: SurfaceTool = p.st(FarmProps.Parts.SNOW) if snowy else null
+	var back := Vector3(at.back.x, Kakehi.BACK_Y, at.back.y)
+	var mouth := Vector3(at.mouth.x, Kakehi.MOUTH_Y, at.mouth.y)
+	GardenProps.stone(p, sn, Vector3(at.back.x, -0.02, at.back.y) - Vector3(d.x, 0, d.y) * 0.06, 0.26, Kakehi.BACK_Y + 0.04, 0.24, int(at.back.x * 31 + at.back.y * 17))
+	_tube(p.st(SPOUT_CULM), back - Vector3(d.x, 0, d.y) * 0.12, mouth, 0.055)   # its back end in the stone
+	var nodes := p.st(SPOUT_CULM.darkened(0.3))
+	for k in [0.22, 0.5, 0.78]:   # the culm's nodes, a little proud of it
+		var c := back.lerp(mouth, k)
+		var axis := (mouth - back).normalized()
+		_tube(nodes, c - axis * 0.015, c + axis * 0.015, 0.062)
+	var axis := (mouth - back).normalized()
+	_tube(p.st(Color("2a2a1c")), mouth - axis * 0.004, mouth + axis * 0.002, 0.045)   # the dark open end
+	var stand := Vector3(at.stand.x, 0.0, at.stand.y)
+	var side := Vector3(-d.y, 0, d.x)
+	var top_y := lerpf(Kakehi.BACK_Y, Kakehi.MOUTH_Y, (at.stand - at.back).length() / (at.mouth - at.back).length()) - 0.05
+	var cross := Vector3(stand.x, top_y, stand.z)
+	var leg := p.st(SPOUT_CULM.darkened(0.12))
+	for s in [-1.0, 1.0]:   # two thin culms crossed under it, each from the ground on one side past the other
+		_tube(leg, stand + side * 0.2 * s, cross - side * 0.07 * s + Vector3(0, 0.08, 0), 0.025)
+	_tube(p.st(CORD), cross - Vector3(0, 0.02, 0), cross + Vector3(0, 0.04, 0), 0.04)   # bound where they cross
+	if sn != null:
+		var up := Vector3(0, 0.05, 0)
+		_tube(sn, back + up, mouth + up, 0.03)
+
+
+## A round culm (six sides) from `a` to `b`, `r` thick, with its ends closed.
+static func _tube(st: SurfaceTool, a: Vector3, b: Vector3, r: float, sides := 6) -> void:
+	var axis := (b - a).normalized()
+	var u := axis.cross(Vector3.UP)
+	if u.length() < 0.01:
+		u = axis.cross(Vector3.RIGHT)
+	u = u.normalized()
+	var v := axis.cross(u).normalized()
+	var ring := func(k: int) -> Vector3: return (u * cos(TAU * k / sides) + v * sin(TAU * k / sides)) * r
+	for k in sides:
+		var o1: Vector3 = ring.call(k)
+		var o2: Vector3 = ring.call(k + 1)
+		var n := (o1 + o2).normalized()
+		OutdoorProps.tri(st, a + o1, b + o1, b + o2, n)
+		OutdoorProps.tri(st, a + o1, b + o2, a + o2, n)
+		OutdoorProps.tri(st, b, b + o2, b + o1, axis)
+		OutdoorProps.tri(st, a, a + o1, a + o2, -axis)

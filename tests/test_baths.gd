@@ -29,7 +29,7 @@ var MV: GDScript
 var BP: GDScript
 var FG: GDScript
 var PA: GDScript
-const GORGE_KINDS := ["onsen", "bath_hut", "bamboo_screen", "oke", "bath_pavilion", "yukimi_doro"]   # Kajika-yu's, up the gorge (_kajika)
+const GORGE_KINDS := ["onsen", "bath_hut", "bamboo_screen", "oke", "bath_pavilion", "yukimi_doro", "kakehi"]   # Kajika-yu's, up the gorge (_kajika)
 
 
 func _initialize() -> void:
@@ -57,6 +57,7 @@ func _run() -> void:
 	_views()
 	_bathers()
 	_kajika()
+	_kakehi()
 	print("test_baths: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 	quit(1 if failures > 0 else 0)
 
@@ -65,6 +66,35 @@ func check(ok: bool, what: String) -> void:
 	if not ok:
 		failures += 1
 		print("FAIL: " + what)
+
+
+## Kajika-yu's bamboo spout (Kakehi, 2026-11-28): on a dry bank cell, its open end and the stream's
+## landing over the pool's deep water clear of the rocks, built in both views, rings timed, its sound.
+func _kakehi() -> void:
+	var m: MapData = MapManager.data("kajika_yu")
+	var spouts := Kakehi.spouts_of(m)
+	check(spouts.size() == 1, "Kajika-yu: one bamboo spout (%d)" % spouts.size())
+	if spouts.size() == 1:
+		var s: Dictionary = spouts[0]
+		var pond := PondShape.of(m, "onsen")
+		var bank := Vector2i((s.back as Vector2).floor())
+		check(m.tile(bank) != "water", "the spout's stone stands on the bank (%s)" % bank)
+		check(pond.field(s.mouth) >= PondShape.SHORE and pond.field(s.landing) >= PondShape.DEEP, "its open end over the water, its stream landing over the deep bed (%.2f, %.2f)" % [pond.field(s.mouth), pond.field(s.landing)])
+		var clear := true
+		for p in m.props:
+			if str(p.kind) == "garden_rock" and (Vector2(p.cell) + Vector2(0.5, 0.5)).distance_to(s.landing) < 0.9:
+				clear = false
+		check(clear, "its stream lands clear of the rocks")
+		var top := -0.34
+		check(Kakehi.arc_at(s, top, 0.0).distance_to(Vector3(s.mouth.x, Kakehi.MOUTH_Y, s.mouth.y)) < 0.001 and Kakehi.arc_at(s, top, 1.0).distance_to(Vector3(s.landing.x, top, s.landing.y)) < 0.001 and Kakehi.arc_at(s, top, 0.5).y > lerpf(Kakehi.MOUTH_Y, top, 0.5), "the stream falls in an arc from the open end to the water's top where it lands")
+		var flow_src := FileAccess.get_file_as_string("res://scripts/world3d/kakehi_flow.gd")
+		check("Kakehi.arc_at(" in flow_src and "\"Stream\"" in flow_src and "\"Foam\"" in flow_src and ".ripple(spot.landing" in flow_src, "the 3D spout lays its stream, its foam and its rings")
+	check(Kakehi.rings_between(0.0, Kakehi.RING_EVERY * 3.0 + 0.01) == 3 and Kakehi.rings_between(0.1, 0.2) == 0, "a ring every RING_EVERY seconds")
+	check(Kakehi.KIND in BathLook.KINDS and "KakehiFlow.new(" in FileAccess.get_file_as_string("res://scripts/world3d/map_world.gd") and "_ring_spouts" in FileAccess.get_file_as_string("res://scripts/main_2d.gd"), "both views draw the spout and ring the water under it")
+	var rules: Array = JSON.parse_string(FileAccess.get_file_as_string("res://data/sfx.json")).ambient.rules
+	var near := AmbientPicker.pick(rules, "sunny", "summer", 12, "outdoor", "kajika_yu", 0.5, {"kakehi": 1.0})
+	var far := AmbientPicker.pick(rules, "sunny", "summer", 12, "outdoor", "kajika_yu", 0.5, {"kakehi": 12.0})
+	check(float(near.get("amb_spout", 0.0)) > 0.8 and not far.has("amb_spout"), "the spout's pouring heard by it, not across the clearing (%s / %s)" % [near.get("amb_spout"), far.get("amb_spout")])
 
 
 func _sento() -> Dictionary:

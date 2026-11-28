@@ -30,6 +30,7 @@ const RING_EVERY := 1.7        # seconds between the gentle rings round a waitin
 const RING_BITE_EVERY := 0.4   # and between the strong ones in a bite
 var _ring_state := "idle"
 var _ring_next := 0.0
+var _spout_clock := 0.0   # the bamboo spouts' rings (Kakehi)
 
 
 func _ready() -> void:
@@ -247,6 +248,7 @@ func _process(delta: float) -> void:
 	_fly(delta)
 	_light_figures()
 	_ring_bobber(delta)
+	_ring_spouts(delta)
 	weather.follow(cam.get_screen_center_position())
 	_update_flash(delta)
 
@@ -292,6 +294,18 @@ func _ring_bobber(delta: float) -> void:
 	if _ring_next <= 0.0:
 		sheet.ripple(at, f.state == "bite")
 		_ring_next = RING_EVERY if f.state == "wait" else RING_BITE_EVERY
+
+
+## A ring where each bamboo spout's stream falls, every Kakehi.RING_EVERY (as KakehiFlow in 3D).
+func _ring_spouts(delta: float) -> void:
+	var from := _spout_clock
+	_spout_clock += delta
+	if Kakehi.rings_between(from, _spout_clock) == 0 or view == null or Game.maps.on_farm():
+		return
+	var sheet := view.get("_water") as WaterView
+	if sheet != null:
+		for s in Kakehi.spouts_of(Game.maps.current()):
+			sheet.ripple(s.landing * T, false)
 
 
 ## A ring on the water where the bather wades (Game.waded).

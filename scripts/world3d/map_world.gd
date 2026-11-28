@@ -260,6 +260,8 @@ func _prop(p: Dictionary) -> void:
 		FootBath.steam(self, Rect2(Vector2(p.cell), Vector2(p.size)))
 	if str(p.kind) == "yubune":   # and the bath's, over its water
 		BathProps.steam(self, Rect2(Vector2(p.cell), Vector2(p.size)))
+	if str(p.kind) == Kakehi.KIND:   # the bamboo spout's falling water, its foam and rings move: made each time
+		add_child(KakehiFlow.new(Kakehi.places(p), BathProps.ONSEN_WATER))
 
 
 func _make_prop(p: Dictionary) -> void:

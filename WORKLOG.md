@@ -10,6 +10,29 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-28 — Kajika-yu: a bamboo spout pouring into the pool
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (the user asked how to make the onsen better and picked my first three ideas; this is the
+  first): a kakehi on the east bank, map prop `kakehi` at [14, 5] with `dir` "left". Kakehi (pure,
+  both views) gives its places: the culm leaves a mossy stone 0.3 cells back of the cell's centre
+  at 0.62 up and slopes to its open end 1.35 cells out over the water at 0.42; the stream lands
+  0.36 past it; a ring every 0.7 s. 3D: BathProps._kakehi (kept: the culm a weathered green
+  SPOUT_CULM, after the screen's pale CULM read as a yellow rod in the first frame, three darker
+  nodes, a dark mouth, two thin culms crossed under it bound with cord, its back end in the stone,
+  snow on top in winter) and KakehiFlow (made each time: two crossed ribbons along the arc with
+  streaks running down, white flickering foam where it lands, the water sheet's ripple there).
+  Flat: BathLook._kakehi and Main2D._ring_spouts. Sound: amb_spout (synthesized: a fuller hiss
+  than the creek, fine grains and a few low plops), heard by an ambient rule's new `near_prop`
+  {kind, radius} (AmbientPicker.pick's `props`, Sfx.prop_distances): full by it, gone 9 cells off.
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)` (test_baths: one spout, its stone on the
+  bank, its open end over the water and the stream landing over the deep bed clear of the rocks,
+  the arc from the mouth to the water's top, the 3D flow's stream / foam / rings, a ring every
+  RING_EVERY, both views, the sound by it and not 12 cells off; test_maps: its flat colour).
+  Frames from `kajika_yu@13,3` at 12:00, 3D and flat: the culm into its stone, the stream's arc,
+  the foam and the rings. Smoke runs (title, `--demo`, town, mine 3, the spout in 3D and flat):
+  0 ERROR lines; windowed `--quit-after 150` by the spout: exit 0.
+- Left / next: 2, the steam rising in wisps; 3, the lanterns' light on the water at night.
+
 ## 2026-11-28 — Kajika-yu: no small shore stones at a big rock's foot
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done (the user circled the "spiky grass edge" on the west bank by the boulder and the granite):
