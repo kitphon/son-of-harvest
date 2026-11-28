@@ -10,6 +10,26 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-28 — Kajika-yu: no rise before the bathing pose (a cut key)
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (the user, after the last fix: "it's still the same"): a frame trace (a throwaway print in
+  Main3D, not committed: soak_t, the pose and the sprite's height a frame, getting in from (5,4))
+  showed the real bounce: from t 0.97 to 1 the pose was still "walk" (the key the stretch starts
+  from) while the lift eased up toward the bathing key's -0.34, so the standing figure rose from
+  -0.75 to -0.40 over the last two frames and only then became the bathing picture. My last fix
+  matched the two pictures' heads but never looked at the frames between, and its test checked
+  only the keys. A key may now be a `cut` (a fifth element): Game._soak_path holds the key before
+  it until its time and then takes it at once. The kajika bathing key is a cut, so the standing
+  figure stays at -0.75 to the frame the bathing one appears at -0.34, its head where the standing
+  one's was; getting out, the standing picture comes at once at -0.75.
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)` (test_baths: the bathing key a cut and,
+  stepping 60 times from the last standing key to it, the standing pose never above that key's
+  lift; test_ashiyu as before). The same trace after: -0.750 at t 0.970, 0.981, 0.993, then the
+  bathing pose at -0.340 at t 1. Smoke runs (title, `--demo`, town, mine 3, the fall soak,
+  getting in from `kajika_yu@8,3`, `kajika@start`): 0 ERROR lines; windowed `--quit-after 150`:
+  exit 0.
+- Left / next: the user's look; step 4b (Mio's event, Hachiro's job, kajika_built).
+
 ## 2026-11-28 — Kajika-yu: no bounce as they sit down
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done (the user: "getting into the pool, at the very end the figure seems to bounce once before

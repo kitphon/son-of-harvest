@@ -2516,6 +2516,8 @@ func _soak_path(back: bool) -> Vector2:
 	if i >= keys.size() - 1:
 		return Vector2(_key_x(keys, i), float(a[2]))
 	var b: Array = keys[i + 1]
+	if b.size() > 4 and str(b[4]) == "cut":   # a key changed to at once (a new picture whose own height differs): held until it
+		return Vector2(_key_x(keys, i), float(a[2]))
 	var u := smoothstep(0.0, 1.0, (soak_t - float(a[0])) / maxf(float(b[0]) - float(a[0]), 0.001))
 	return Vector2(lerpf(_key_x(keys, i), _key_x(keys, i + 1), u), lerpf(float(a[2]), float(b[2]), u))
 

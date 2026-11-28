@@ -991,6 +991,17 @@ func _kajika() -> void:
 	var head_sat: float = float(sit_key[2]) + head_of.call("player:front:bathe:0") * px
 	check(str(stand_key[3]) == "walk" and str(sit_key[3]) == "bathe" and absf(head_stand - head_sat) < 0.05,
 		"sitting down the head stays put: stood %.2f, sat %.2f" % [head_stand, head_sat])
+	# And no rise on the way to it: the bathing key is a cut, the standing picture held at its lift
+	# until the bathing one takes over (eased, it rose 0.4 in the last two frames: the user's bounce).
+	var keep2 := [g.soak_t, g.soak_phase]
+	var rose := 0.0
+	for i in 60:
+		g.soak_t = float(stand_key[0]) + (1.0 - float(stand_key[0])) * i / 60.0
+		if g.still_pose() == "walk":
+			rose = maxf(rose, g._soak_path(false).y - float(stand_key[2]))
+	g.soak_t = keep2[0]
+	g.soak_phase = keep2[1]
+	check(sit_key.size() > 4 and str(sit_key[4]) == "cut" and rose <= 0.0001, "standing, no rise before the bathing pose takes over (%.2f)" % rose)
 	check(shallow_bathe >= g.WADE_DEEP, "the bathing pose only over the deep bed (%.2f of the depth at the shallowest)" % shallow_bathe)
 	var start: Vector2 = g.bath_point()
 	var rings: Array[Vector2] = []
