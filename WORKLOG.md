@@ -10,6 +10,27 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-28 — Kajika-yu: the user's three fixes after playing (stones, moss, a green wedge)
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (the user circled three things in their screenshots):
+  1. "Cut these 3-4 stones" in the soak view's foreground: the three stepping stones I had just
+     added at the path's end and three small shore stones beside them. The `stepping_stones` kind
+     is gone (map, GardenProps, MapView, GardenLook.KINDS); the hot spring's PondShape keeps the
+     path cells round it (`paths`, gathered after its bounds) and lays no small stone within
+     PATH_CLEAR (1.3 cells) of one.
+  2. "Green marks on the rock": the moss on the pale granite (a third of them had it). Granite
+     is bare now, in 3D and flat.
+  3. "Green triangle bits still at the edge": the fern at (2, 9) by the west boulder (removed),
+     and the bank's grassy lip cutting across the foot of the granite at (4, 9), half under the
+     bank. A garden rock may now carry `offset` [x, z] (GardenProps.prop, MapView._draw_garden,
+     PondShape.rocks follow it); that granite stands 0.4 cells out into the water.
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)` (test_maps: no stepping stones, no fern
+  by the west boulder, no shore stone near the path's end, the west granite's west side over the
+  water, the granite bare). Frames: the fall soak at 17:30 from the path, wading west at 12:00 and
+  21:00 (the wedge gone), the path's end at 12:00. Smoke runs (title, `--demo`, the temple pond,
+  mine 3, the soak, the flat view): 0 ERROR lines; windowed `--quit-after 150`: exit 0.
+- Left / next: the season-and-hour sheet again for the user.
+
 ## 2026-11-28 — Kajika-yu: a name board, a bench and stacked buckets
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done (idea 6, small lived-in touches): three bath props in both views (BathProps / BathLook,

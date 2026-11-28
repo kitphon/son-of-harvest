@@ -11,10 +11,10 @@ extends RefCounted
 ##  - `shrub`: a clipped mound of small leaves, faceted, lighter on top; in spring (days 16-30)
 ##    and the first days of summer the azalea's pink flowers dot it, in fall a few leaves redden,
 ##    in winter it is darker and snow lies on its top.
+##  - any of them may carry `offset` [x, z] (cells) to stand off its cell's centre: a rock at the
+##    waterline half under the bank showed the bank's grassy lip as a green wedge across its foot.
 ##  - `fern` (2026-11-28, Kajika-yu's shore): a low clump of arching fronds, toothed along their
 ##    edges, by season (GardenLook.FERN: yellowing in fall, low and brown in winter).
-##  - `stepping_stones` (`at`: [[x, z], ...] cells): flat stones set down the bank into the water,
-##    each at the ground's height there (the soft pond's slope), wet below the water's top.
 
 const KINDS := GardenLook.KINDS
 const SHAPES := GardenLook.SHAPES
@@ -29,6 +29,8 @@ const FALL_RED := GardenLook.FALL_RED
 static func prop(w: FarmWorld, p: Dictionary, mid: Vector3, map: MapData, season: String, day: int, snow: bool) -> void:
 	var cell := Vector2i(p.cell)
 	var wet := map.tile(cell) == "water"
+	var shift: Array = p.get("offset", [0, 0])   # cells, to set a rock clear of the bank's lip
+	mid += Vector3(float(shift[0]), 0.0, float(shift[1]))
 	var seed := cell.x * 31 + cell.y * 17
 	match str(p.kind):
 		"garden_rock":
@@ -41,7 +43,6 @@ static func prop(w: FarmWorld, p: Dictionary, mid: Vector3, map: MapData, season
 			rock(w, str(p.get("shape", "low")), mid + Vector3(0, -SunkenGround.DROP * sink, 0), SunkenGround.DROP * sink, seed, snow)
 		"shrub": shrub(w, Rect2(Vector2(p.cell), Vector2(p.size)), season, day, seed, snow, bool(p.get("wild", false)))
 		"fern": fern(w, mid, season, seed, snow)
-		"stepping_stones": stepping_stones(w, p, map, snow)
 
 
 ## A garden rock of `shape` standing at `foot` (its base), `under` deep in the water (that much
@@ -74,8 +75,8 @@ static func rock(w: FarmWorld, shape: String, foot: Vector3, under: float, seed:
 			stone(p, sn, foot + off + Vector3(0.24, 0, 0.16), 0.15, 0.16 * show + under, 0.13, seed + 2)
 		"flat":
 			stone(p, sn, foot + off, 0.42, 0.15 * show + under, 0.34, seed + 1)
-		"granite":   # big pale granite boulders heaped on a shore (Kajika-yu, the user's second photo), a little moss
-			stone(p, sn, foot + off, 0.56, 0.5 * show + under, 0.46, seed + 1, GardenLook.GRANITE, seed % 3 == 0)
+		"granite":   # big pale granite boulders heaped on a shore (Kajika-yu, the user's second photo), bare
+			stone(p, sn, foot + off, 0.56, 0.5 * show + under, 0.46, seed + 1, GardenLook.GRANITE, false)   # no moss: the user saw its patches as green marks (2026-11-28)
 			stone(p, sn, foot + off + Vector3(0.44, 0, 0.26), 0.34, 0.3 * show + under, 0.3, seed + 2, GardenLook.GRANITE, false)
 		"boulder":   # a big mossy rock standing out of the water like an island (Kajika-yu, the user's photo)
 			stone(p, sn, foot + off, 0.62, 0.62 * show + under, 0.5, seed + 1)
@@ -289,23 +290,3 @@ static func fern(w: FarmWorld, mid: Vector3, season: String, seed: int, snow: bo
 		var sn := p.st(FarmProps.Parts.SNOW)
 		Shrine.lathe(sn, centre, [Vector2(0.26, 0.12 * tall), Vector2(0.12, 0.2 * tall), Vector2(0.0, 0.22 * tall)], 7)
 	p.commit(w)
-
-
-## Flat stones down a soft pond's bank (prop `p`'s `at`, cells), each at the ground's height at its
-## spot (the pond's slope: PondShape.sink), its foot a little sunk, wet below the water's top.
-static func stepping_stones(w: FarmWorld, p: Dictionary, map: MapData, snow: bool) -> void:
-	var parts := FarmProps.Parts.new()
-	var sn: SurfaceTool = parts.st(FarmProps.Parts.SNOW) if snow else null
-	var pond: PondShape = null
-	for s in PondShape.all_of(map):
-		if s.bounds.has_point(Vector2i(p.cell)):
-			pond = s
-	var k := 0
-	for spot in p.get("at", []):
-		var at := Vector2(spot[0], spot[1])
-		var y := -SunkenGround.DROP * (pond.sink(at) if pond != null else 0.0)
-		wet_line = WATER_TOP + WET_BAND if y < WATER_TOP else -INF
-		stone(parts, sn, Vector3(at.x, y - 0.04, at.y), 0.26, 0.12, 0.2, int(at.x * 53 + at.y * 29) + k, STONE, false)
-		k += 1
-	wet_line = -INF
-	parts.commit(w)

@@ -4,7 +4,7 @@ extends RefCounted
 ## them in 3D, MapView._draw_garden draws them flat): the kinds, the rock shapes, the colours and
 ## when the shrubs flower. Pure (no world classes), so the flat view loads without the 3D ones.
 
-const KINDS: Array[String] = ["garden_rock", "shrub", "fern", "stepping_stones"]
+const KINDS: Array[String] = ["garden_rock", "shrub", "fern"]
 const SHAPES: Array[String] = ["tall", "flat", "low", "pair", "boulder", "granite"]
 const GRANITE: Array[Color] = [Color("8c877c"), Color("aaa498"), Color("c6c0b2")]   # pale granite (Kajika-yu's shore)
 const STONE: Array[Color] = [Color("4e4c47"), Color("6a675f"), Color("85817a")]

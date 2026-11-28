@@ -298,7 +298,7 @@ func _make_prop(p: Dictionary) -> void:
 		"chimney": BathProps.chimney(self, mid, SnowLayer.map_has_snow(map))   # the public bath's, Yumachi
 		"door_bell", "store_sign", "ume_jar", "carp_streamer", "ribbon_board", "keepsake", "rope_lift", "jizo_bibs", "jizo_scarf", "kiln_mark", "kiln_site", "kiln_new", "boat_name", "noren", "captain_jar", "frog", "sky_map": StoryProps.prop(self, p)
 		"ladder": _ladder(mid)
-		"garden_rock", "shrub", "fern", "stepping_stones": GardenProps.prop(self, p, mid, map, Game.season_name(), Game.day, SnowLayer.map_has_snow(map))
+		"garden_rock", "shrub", "fern": GardenProps.prop(self, p, mid, map, Game.season_name(), Game.day, SnowLayer.map_has_snow(map))
 		"cradle": pass   # the baby's cradle: CradleLayer shows it (it changes as the farmer lifts the baby)
 		_:
 			push_warning("MapWorld: no look for prop '%s'" % p.kind)

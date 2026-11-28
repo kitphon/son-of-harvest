@@ -33,7 +33,7 @@ const COLORS := {
 	"potting_bench": Color("8a6a48"),
 	"yubune": Color("5fa6a2"), "kran": Color("d8e4e6"), "milk_fridge": Color("eeeee8"), "basket_shelf": Color("d8c088"),
 	"bench": Color("a07a52"), "getabako": Color("4a3424"), "bath_noren": Color("2f4a7a"), "bath_mural": Color("4e8a4a"), "glass_door": Color("c8e0e6"),
-	"onsen": Color("3f8a78"), "oke": Color("d8b884"), "bath_pavilion": Color("5a4636"), "yukimi_doro": Color("aaa498"), "kakehi": Color("6c7a3e"), "bath_sign": Color("5a4636"), "bath_bench": Color("8a6444"), "oke_stack": Color("d8b884"), "fern": Color("3e7630"), "stepping_stones": Color("6a675f"), "bath_hut": Color("4e3a2c"), "bamboo_screen": Color("a8a464"),
+	"onsen": Color("3f8a78"), "oke": Color("d8b884"), "bath_pavilion": Color("5a4636"), "yukimi_doro": Color("aaa498"), "kakehi": Color("6c7a3e"), "bath_sign": Color("5a4636"), "bath_bench": Color("8a6444"), "oke_stack": Color("d8b884"), "fern": Color("3e7630"), "bath_hut": Color("4e3a2c"), "bamboo_screen": Color("a8a464"),
 }
 
 var map: MapData
@@ -463,7 +463,8 @@ static func draw_drips(canvas: CanvasItem, r: Rect2, wet_now: float) -> void:
 ## the water a dark rim where it meets the skin); a shrub a round green mound lit from the upper
 ## left, dotted pink while the azaleas flower, a few red leaves in fall, snow on top when it lies.
 func _draw_garden(p: Dictionary, r: Rect2) -> void:
-	var c := r.get_center().floor()
+	var shift: Array = p.get("offset", [0, 0])
+	var c := (r.get_center() + Vector2(float(shift[0]), float(shift[1])) * T).floor()
 	var seed := int(p.cell.x) * 31 + int(p.cell.y) * 17
 	var snow := SnowLayer.map_has_snow(map) and _cover >= 0.3   # snow lying now
 	if str(p.kind) == "shrub":
@@ -493,13 +494,6 @@ func _draw_garden(p: Dictionary, r: Rect2) -> void:
 				_objects.draw_rect(Rect2((c + d * i).floor(), Vector2.ONE), tones[1] if i < 3 else tones[2])
 		_objects.draw_rect(Rect2(c - Vector2(1, 1), Vector2(2, 2)), tones[0])
 		return
-	if str(p.kind) == "stepping_stones":   # each flat stone a small grey blob at its spot
-		var o := r.position - Vector2(p.cell) * T
-		var k := 0
-		for spot in p.get("at", []):
-			blob(_objects, (o + Vector2(spot[0], spot[1]) * T).floor(), 3, 2, GardenLook.STONE, seed + k)
-			k += 1
-		return
 	var sizes := {"tall": [4, 4], "flat": [6, 4], "pair": [5, 4], "low": [4, 3], "boulder": [8, 6], "granite": [7, 5]}
 	var shape := str(p.get("shape", "low"))
 	var sz: Array = sizes.get(shape, sizes.low)
@@ -515,7 +509,8 @@ func _draw_garden(p: Dictionary, r: Rect2) -> void:
 		_objects.draw_rect(Rect2(c + Vector2(-4, -5), Vector2(6, 2)), GardenLook.moss_now())
 	elif shape == "tall" or shape == "low":
 		blob(_objects, c + Vector2(4, 4), 2, 1, GardenLook.STONE, seed + 2)
-	_objects.draw_rect(Rect2(c + Vector2(-1, -int(sz[1]) + 1), Vector2(2, 1)), GardenLook.moss_now())
+	if shape != "granite":   # pale granite keeps no moss (2026-11-28, the user saw its patches as green marks)
+		_objects.draw_rect(Rect2(c + Vector2(-1, -int(sz[1]) + 1), Vector2(2, 1)), GardenLook.moss_now())
 	if snow:
 		_objects.draw_rect(Rect2(c + Vector2(-int(sz[0]) + 2, -int(sz[1])), Vector2(int(sz[0]) * 2 - 3, 2)), Color("f4f8fa"))
 
