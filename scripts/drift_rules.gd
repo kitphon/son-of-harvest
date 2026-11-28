@@ -209,3 +209,86 @@ static func _firefly(i: int, k: Dictionary, t: float, wind: float, scene: Dictio
 		"color": Color(str(k.light)),
 		"size": float(k.size),
 	}
+
+
+## Leaves and petals afloat on soft pond `pond` (data/drift.json "afloat") on `day` of `season_id`
+## under weather look `look`, at time `t` (seconds) and `wind` (0..1): [{kind, pos: Vector2
+## (cells), angle, size (cells), color (alpha in it)}]. None on water of other looks.
+static func afloat(pond: PondShape, season_id: String, day: int, look: String, t: float, wind := 0.0, cfg := {}) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	if cfg.is_empty():
+		cfg = config()
+	var a: Dictionary = cfg.get("afloat", {})
+	if pond == null or not (pond.look in a.get("looks", [])) or float((a.get("weather", {}) as Dictionary).get(look, 1.0)) <= 0.0:
+		return out
+	var spots := float_spots(pond, cfg)
+	if spots.is_empty():
+		return out
+	var along := wind_dir(cfg) * (float(a.get("drift", 0.0)) + float(a.get("drift_wind", 0.0)) * clampf(wind, 0.0, 1.0))
+	var k := 0
+	for kind in ["leaf", "petal"]:
+		var c: Dictionary = a.get(kind, {})
+		if not (season_id in c.get("seasons", [])) or day < int(c.get("from", 1)):
+			continue
+		var from := int(c.get("from", 1))
+		var share := clampf(float(day - from) / maxf(30.0 - from, 1.0), 0.0, 1.0)
+		var n := roundi(lerpf(float(c.count[0]), float(c.count[1]), share))
+		var colors: Array = c.get("colors", ["ffffff"])
+		for i in n:
+			k += 1
+			var life := float(a.get("life", 60.0)) * (1.0 + (rnd(k, 1, 7) - 0.5) * float(a.get("life_var", 0.0)))
+			var u := t / life + rnd(k, 2, 7)
+			var round_no := floori(u)
+			var f := u - round_no
+			var home: Vector2 = spots[int(rnd(k, round_no, 11) * spots.size()) % spots.size()]
+			var age := f * life
+			var circle := Vector2.from_angle(age * 0.05 + rnd(k, round_no, 13) * TAU) * float(a.get("wander", 0.0))
+			var pos := home + along * age + circle - Vector2.from_angle(rnd(k, round_no, 13) * TAU) * float(a.get("wander", 0.0))
+			var fade := float(a.get("fade", 0.08))
+			var alpha := smoothstep(0.0, fade, f) * (1.0 - smoothstep(1.0 - fade, 1.0, f))
+			alpha *= smoothstep(PondShape.SHORE + 0.05, PondShape.SHORE + 0.2, pond.field(pos))   # gone as it nears the bank
+			if alpha <= 0.0:
+				continue
+			var col := Color(str(colors[int(rnd(k, round_no, 17) * colors.size()) % colors.size()])).darkened(0.12)
+			col.a = alpha
+			out.append({"kind": kind, "pos": pos, "angle": rnd(k, round_no, 19) * TAU + age * float(a.get("spin", 0.0)) * (1.0 if k % 2 == 0 else -1.0), "size": float(c.get("size", 0.15)), "color": col})
+	return out
+
+
+## Where things set afloat start on `pond`: points `spot_step` cells apart over its deep bed,
+## clear of its rocks (PondShape.rocks). Kept a pond.
+static var _spots := {}
+static func float_spots(pond: PondShape, cfg := {}) -> Array[Vector2]:
+	var key := pond.get_instance_id()
+	if _spots.has(key):
+		return _spots[key]
+	if cfg.is_empty():
+		cfg = config()
+	var step := maxf(float((cfg.get("afloat", {}) as Dictionary).get("spot_step", 0.5)), 0.1)
+	var out: Array[Vector2] = []
+	var n := Vector2i((Vector2(pond.bounds.size) / step).ceil())
+	for j in n.y:
+		for i in n.x:
+			var p := Vector2(pond.bounds.position) + (Vector2(i, j) + Vector2(0.5, 0.5)) * step
+			if pond.field(p) < PondShape.DEEP:
+				continue
+			var clear := true
+			for rk in pond.rocks:
+				if (rk[0] as Vector2).distance_to(p) < float(rk[1]) * 0.75:
+					clear = false
+					break
+			if clear:
+				out.append(p)
+	_spots[key] = out
+	return out
+
+
+## Everything afloat on map `m`'s soft ponds now (Game's season, day, weather; `t`, `wind`).
+static func afloat_now(game: Object, m: MapData, t: float, wind := 0.0) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	if game == null or m == null or m.indoor:
+		return out
+	var look: String = game.weather_look(game.weather_today, game.season_name())
+	for pond in PondShape.all_of(m):
+		out.append_array(afloat(pond, game.season_name(), int(game.day), look, t, wind))
+	return out

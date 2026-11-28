@@ -56,5 +56,8 @@
 		"light": "d8f078",
 		"size": 0.05
 	},
-	"flat": {"height_px": 9.0, "halo": 0.25}
+	"flat": {"height_px": 9.0, "halo": 0.25},
+	"afloat": {"_note": "Leaves and petals floating on a soft pond's water (2026-11-28, the user's ask for the onsen through the seasons): on water of `looks` only, all day and night, any weather but a storm or a blizzard. `leaf` in fall, `petal` in spring from day `from`: `count` [at the season's day 1 (or `from`), at day 30], the most afloat at once; each lives `life` seconds (varied by `life_var`) from a spot over the deep water clear of the rocks (`spot_step` cells apart, MistRules-like), drifting along wind_dir at `drift` + `drift_wind` x the wind (cells a second) and round a slow circle of `wander` cells, turning `spin` rad a second, fading in and out over `fade` of its life and away near the shore; `size` cells, `colors` its look (the falling kind's, a little darker: wet). DriftRules.afloat; FloatLayer in 3D, DriftView flat.", "looks": ["onsen"], "weather": {"storm": 0.0, "blizzard": 0.0}, "spot_step": 0.5, "life": 60.0, "life_var": 0.4, "drift": 0.02, "drift_wind": 0.06, "wander": 0.35, "spin": 0.12, "fade": 0.08,
+		"leaf": {"seasons": ["fall"], "from": 1, "count": [3, 18], "size": 0.26, "colors": ["b8402a", "c8582a", "d07a2c", "a8302a", "c89a34"]},
+		"petal": {"seasons": ["spring"], "from": 14, "count": [4, 14], "size": 0.16, "colors": ["f7c6d4", "fbdce6", "eeaec2"]}}
 }

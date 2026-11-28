@@ -10,6 +10,25 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-28 — Kajika-yu: leaves and petals afloat by season
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (idea 5, the seasons; the summer fireflies and the snow on the rocks were already there):
+  data/drift.json "afloat" and DriftRules.afloat / float_spots / afloat_now: on water of `looks`
+  (onsen), day and night, none in a storm or a blizzard; maple leaves in fall (3 on day 1 up to
+  18 by day 30, five reds, oranges and a gold, a little darker for wet), cherry petals in spring
+  from day 14 (4 to 14); each lives about a minute from a spot over the deep bed clear of the
+  rocks, drifting with the wind and round a small circle, turning, fading in and out and away
+  near the bank. FloatLayer (3D): flat quads on the water's top, alpha-cut to a five-lobed maple
+  leaf or a notched petal drawn into a 16 px picture, tinted. DriftView (flat): 2 x 2 leaves and
+  1 px petals on the water, shown day and night. Sizes went 0.2 -> 0.26 (leaf) and 0.12 -> 0.16
+  (petal) after the first frame, where they read as dust.
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)` (test_drift: fall leaves growing in
+  number, under the count, petals only from day 14, none in summer, winter or a storm, only on the
+  hot spring, all on the water, drifting, both views). Frames soaking at 12:00 on fall 25 and
+  spring 25. Smoke runs (title, `--demo`, town in fall, mine 3, the pool on fall 28, the flat
+  view in spring): 0 ERROR lines; windowed `--quit-after 150`: exit 0.
+- Left / next: 6, the name sign, a bench, stacked buckets.
+
 ## 2026-11-28 — Kajika-yu: the shore: wet rock feet, ferns, stepping stones
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done (the user then asked for my ideas 4-6; this is 4, a more natural shore): a rock standing in

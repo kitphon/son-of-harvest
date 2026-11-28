@@ -23,10 +23,31 @@ func _run() -> void:
 	_gating()
 	_motes()
 	_scenes()
+	_afloat()
 	await _views()
 	print("test_drift: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 	quit(1 if failures > 0 else 0)
 
+
+
+## Leaves and petals afloat on the hot spring (2026-11-28; data/drift.json "afloat", DriftRules.afloat).
+func _afloat() -> void:
+	var m: MapData = MapManager.data("kajika_yu")
+	var pond := PondShape.of(m, "onsen")
+	var cfg: Dictionary = DR.config().afloat
+	var early: Array = DR.afloat(pond, "fall", 1, "sunny", 30.0)
+	var late: Array = DR.afloat(pond, "fall", 30, "sunny", 30.0)
+	check(not late.is_empty() and late.size() > early.size() and late.all(func(f) -> bool: return f.kind == "leaf"), "fall: leaves afloat, more late in the season (%d -> %d)" % [early.size(), late.size()])
+	check(late.size() <= int(cfg.leaf.count[1]), "no more afloat than the count")
+	check(DR.afloat(pond, "spring", 5, "sunny", 30.0).is_empty() and not DR.afloat(pond, "spring", 25, "sunny", 30.0).is_empty(), "spring: petals only once the cherries shed (from day %d)" % int(cfg.petal.from))
+	check(DR.afloat(pond, "summer", 15, "sunny", 30.0).is_empty() and DR.afloat(pond, "winter", 15, "snow", 30.0).is_empty(), "nothing afloat in summer or winter")
+	check(DR.afloat(pond, "fall", 30, "storm", 30.0).is_empty(), "a storm clears the water")
+	check(DR.afloat(PondShape.of(MapManager.data("town"), "jade"), "fall", 30, "sunny", 30.0).is_empty(), "only on water of the listed looks (the hot spring)")
+	var on_water := late.all(func(f) -> bool: return pond.field(f.pos) >= PondShape.SHORE)
+	check(on_water, "every floater on the water")
+	var moved: Array = DR.afloat(pond, "fall", 30, "sunny", 32.0)
+	check(moved.size() > 0 and (moved[0].pos as Vector2).distance_to(late[0].pos) > 0.0, "they drift")
+	check(FileAccess.get_file_as_string("res://scripts/world3d/map_world.gd").contains("FloatLayer.new(") and FileAccess.get_file_as_string("res://scripts/world/drift_view.gd").contains("afloat_now"), "both views lay them on the water")
 
 func check(ok: bool, what: String) -> void:
 	if not ok:

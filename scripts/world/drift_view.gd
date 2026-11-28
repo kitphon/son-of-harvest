@@ -19,6 +19,7 @@ var _scene_key := ""
 var _wind := 0.0
 var _amounts := {}
 var _glow: Node2D
+var _afloat: Array[Dictionary] = []   # DriftRules.afloat_now: leaves and petals on the water
 
 
 func setup(m: MapData, f: FarmGrid = null) -> DriftView:
@@ -45,10 +46,11 @@ func _process(delta: float) -> void:
 func refresh() -> void:
 	var game := (Engine.get_main_loop() as SceneTree).root.get_node_or_null("Game")
 	_amounts = DriftRules.amounts_now(game, map)
-	visible = not _amounts.is_empty()
+	_wind = game.wind_strength() if game != null else 0.0
+	_afloat = DriftRules.afloat_now(game, map, _t, _wind)
+	visible = not _amounts.is_empty() or not _afloat.is_empty()
 	if not visible:
 		return
-	_wind = game.wind_strength()
 	var key := "%s|%d|%d" % [map.id, game.season, game.day]
 	if key != _scene_key:
 		_scene_key = key
@@ -85,6 +87,10 @@ func flies() -> Array[Dictionary]:
 
 
 func _draw() -> void:
+	for f in _afloat:   # leaves (2 x 2) and petals (1 x 1) lying on the water
+		var c: Color = f.color
+		if c.a > 0.5:
+			draw_rect(Rect2((f.pos * T).floor(), Vector2.ONE * (2 if f.kind == "leaf" else 1)), Color(c, 1.0))
 	for s in specks():
 		draw_rect(Rect2(s.at, Vector2(s.wide, 1)), s.color)
 
