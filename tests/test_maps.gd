@@ -478,6 +478,16 @@ func _soft_pond() -> void:
 	var near_path := PondShape.of(ky, "onsen").shore_stones().filter(func(st) -> bool: return (st.pos as Vector2).distance_to(path_end) < PondShape.PATH_CLEAR)
 	check(near_path.is_empty(), "no small shore stones where the path meets the water (%d)" % near_path.size())
 	check(GardenLook.KINDS.size() == 3, "the garden kinds: rocks, shrubs, ferns")
+	var starts: Array[int] = []   # where the water starts on each of the pool's rows: no step of more than two cells down its south-west shore
+	for y in range(7, 12):
+		for x in ky.w:
+			if ky.tile(Vector2i(x, y)) == "water":
+				starts.append(x)
+				break
+	var steep := 0
+	for i in range(1, starts.size()):
+		steep = maxi(steep, starts[i] - starts[i - 1])
+	check(starts.size() == 5 and steep <= 2, "Kajika-yu: the south-west shore rounds off gently, no sharp land corner (rows 7-11 start at %s)" % str(starts))
 	var west_granite: Dictionary = ky.props.filter(func(p) -> bool: return str(p.kind) == "garden_rock" and Vector2i(p.cell) == Vector2i(4, 9))[0]
 	var g_at := Vector2(4.5, 9.5) + Vector2(float(west_granite.get("offset", [0, 0])[0]), float(west_granite.get("offset", [0, 0])[1]))
 	check(PondShape.of(ky, "onsen").field(g_at + Vector2(-0.56, 0)) >= PondShape.SHORE, "the west granite stands clear of the bank's lip (its west side over the water)")

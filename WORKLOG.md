@@ -10,6 +10,24 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-28 — Kajika-yu: the south-west shore rounded (the real green wedge)
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (the user: "why is this green triangle still there? you said it was fixed"): my last fix
+  took out a fern and moved the granite but never found what drew the wedge; I checked one frame
+  from one angle and called it done. This time I coloured each suspect in turn on the user's view
+  (wading west from `kajika_yu@pool` at 16:30): the grass painted down the bank (magenta), the
+  bank's moss (cyan), the stones' moss tops (magenta), the wood mirrored in the water (off), the
+  two meshes over the shore (hidden one at a time), and listed every object round the spot. None
+  of them; the field's printout showed the shore turning hard there, from running north-south
+  (x about 3.6 at rows 8-10) to running east (x 5.5 by row 10.8): a point of land jutting into the
+  water, seen nearly edge-on from the water as a green triangle. Cells (4, 10), (5, 11) and
+  (6, 11) are water now (rows 7-11 start at 3, 3, 4, 4, 5), so that shore rounds off gently.
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)` (test_maps: the south-west shore's row
+  starts step no more than two cells). Frames: the user's view wading west at 16:30 (the bank a
+  smooth slope behind the bather, no point), the path at 12:00, the flat view. Smoke runs (title,
+  `--demo`, town, mine 3, wading west, the flat view): 0 ERROR lines; windowed `--quit-after 150`:
+  exit 0.
+
 ## 2026-11-28 — Kajika-yu: the user's three fixes after playing (stones, moss, a green wedge)
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done (the user circled three things in their screenshots):
