@@ -33,7 +33,7 @@ const COLORS := {
 	"potting_bench": Color("8a6a48"),
 	"yubune": Color("5fa6a2"), "kran": Color("d8e4e6"), "milk_fridge": Color("eeeee8"), "basket_shelf": Color("d8c088"),
 	"bench": Color("a07a52"), "getabako": Color("4a3424"), "bath_noren": Color("2f4a7a"), "bath_mural": Color("4e8a4a"), "glass_door": Color("c8e0e6"),
-	"onsen": Color("3f8a78"), "oke": Color("d8b884"), "bath_pavilion": Color("5a4636"), "yukimi_doro": Color("aaa498"), "kakehi": Color("6c7a3e"), "fern": Color("3e7630"), "stepping_stones": Color("6a675f"), "bath_hut": Color("4e3a2c"), "bamboo_screen": Color("a8a464"),
+	"onsen": Color("3f8a78"), "oke": Color("d8b884"), "bath_pavilion": Color("5a4636"), "yukimi_doro": Color("aaa498"), "kakehi": Color("6c7a3e"), "bath_sign": Color("5a4636"), "bath_bench": Color("8a6444"), "oke_stack": Color("d8b884"), "fern": Color("3e7630"), "stepping_stones": Color("6a675f"), "bath_hut": Color("4e3a2c"), "bamboo_screen": Color("a8a464"),
 }
 
 var map: MapData

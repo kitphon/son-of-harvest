@@ -29,7 +29,7 @@ var MV: GDScript
 var BP: GDScript
 var FG: GDScript
 var PA: GDScript
-const GORGE_KINDS := ["onsen", "bath_hut", "bamboo_screen", "oke", "bath_pavilion", "yukimi_doro", "kakehi"]   # Kajika-yu's, up the gorge (_kajika)
+const GORGE_KINDS := ["onsen", "bath_hut", "bamboo_screen", "oke", "bath_pavilion", "yukimi_doro", "kakehi", "bath_sign", "bath_bench", "oke_stack"]   # Kajika-yu's, up the gorge (_kajika)
 
 
 func _initialize() -> void:
@@ -89,6 +89,12 @@ func _kakehi() -> void:
 		check(Kakehi.arc_at(s, top, 0.0).distance_to(Vector3(s.mouth.x, Kakehi.MOUTH_Y, s.mouth.y)) < 0.001 and Kakehi.arc_at(s, top, 1.0).distance_to(Vector3(s.landing.x, top, s.landing.y)) < 0.001 and Kakehi.arc_at(s, top, 0.5).y > lerpf(Kakehi.MOUTH_Y, top, 0.5), "the stream falls in an arc from the open end to the water's top where it lands")
 		var flow_src := FileAccess.get_file_as_string("res://scripts/world3d/kakehi_flow.gd")
 		check("Kakehi.arc_at(" in flow_src and "\"Stream\"" in flow_src and "\"Foam\"" in flow_src and ".ripple(spot.landing" in flow_src, "the 3D spout lays its stream, its foam and its rings")
+	var kinds_ky := m.props.map(func(p) -> String: return str(p.kind))
+	check("bath_sign" in kinds_ky and "bath_bench" in kinds_ky and "oke_stack" in kinds_ky, "Kajika-yu: its name board by the path, a bench and stacked buckets by the changing house")
+	var sign_at: Vector2i = Vector2i(m.props.filter(func(p) -> bool: return str(p.kind) == "bath_sign")[0].cell)
+	check(m.tile(sign_at + Vector2i.LEFT) == "path" or m.tile(sign_at + Vector2i.RIGHT) == "path", "the name board stands beside the path in")
+	var bp_src := FileAccess.get_file_as_string("res://scripts/world3d/bath_props.gd")
+	check("\"bath_sign\": _sign(" in bp_src and "\"oke_stack\": _oke_stack(" in bp_src and "\"bath_bench\": _bench_out(" in bp_src, "the three are built in 3D (and drawn flat: BathLook.KINDS)")
 	check(Kakehi.rings_between(0.0, Kakehi.RING_EVERY * 3.0 + 0.01) == 3 and Kakehi.rings_between(0.1, 0.2) == 0, "a ring every RING_EVERY seconds")
 	check(Kakehi.KIND in BathLook.KINDS and "KakehiFlow.new(" in FileAccess.get_file_as_string("res://scripts/world3d/map_world.gd") and "_ring_spouts" in FileAccess.get_file_as_string("res://scripts/main_2d.gd"), "both views draw the spout and ring the water under it")
 	var rules: Array = JSON.parse_string(FileAccess.get_file_as_string("res://data/sfx.json")).ambient.rules

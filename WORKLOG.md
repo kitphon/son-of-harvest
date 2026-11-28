@@ -10,6 +10,22 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-28 — Kajika-yu: a name board, a bench and stacked buckets
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (idea 6, small lived-in touches): three bath props in both views (BathProps / BathLook,
+  flat colours). `bath_sign` at [10, 17] beside the path in: two dark cedar posts, a weathered
+  board facing the path with three columns of made-up brush marks (not real writing), a small
+  gabled cap, snow on it in winter. `bath_bench` at [6, 2] beside the changing house: a plank seat
+  on two stone blocks. `oke_stack` at [6, 1] behind it: three cypress buckets upside down on a low
+  stand, one over the two. The buckets went first at [1, 2], left of the house, where a tree hid
+  them in the frame, so they moved behind the bench; [2, 3] was out, it would shut the walk west
+  from the hut.
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)` (test_baths: the three on Kajika-yu, the
+  board beside the path, built in 3D; their kinds Kajika-yu's; test_maps: flat colours). Frames
+  at 12:00 summer from `kajika_yu@hut`, `@5,4` and `@11,18`. Smoke runs (title, `--demo`, town,
+  mine 3, the hut in winter snow, the flat view): 0 ERROR lines; windowed `--quit-after 150`: exit 0.
+- Left / next: the user's look at ideas 4-6 in the game.
+
 ## 2026-11-28 — Kajika-yu: leaves and petals afloat by season
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done (idea 5, the seasons; the summer fireflies and the snow on the rocks were already there):

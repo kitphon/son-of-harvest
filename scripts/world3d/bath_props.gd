@@ -29,6 +29,10 @@ extends RefCounted
 ## `kakehi` (2026-11-28) the bamboo spout on the bank pouring into the pool (Kakehi's places): a culm
 ## out of a mossy stone, its nodes darker, on a crossed bamboo stand bound with cord, its open end
 ## over the water; the falling stream, its foam and rings move, so KakehiFlow makes them apart.
+## (2026-11-28, the user's sixth idea) `bath_sign` the name board by the path in: two dark cedar
+## posts, a weathered board facing the path (+z) with brushed strokes in three columns (made-up
+## marks, not real writing) and a little gabled cap; `bath_bench` a plank bench on two stone
+## blocks; `oke_stack` three cypress buckets upside down on a low stand, one on the two.
 
 const HEIGHT := 5.2          # the top of the lip, world units (a cell is 1)
 const SHAFT := Color("8c8174")
@@ -103,6 +107,9 @@ static func prop(w: FarmWorld, p: Dictionary, mid: Vector3, r: Rect2, snowy := f
 		"bath_pavilion": _pavilion(w, parts, r, snowy)
 		"yukimi_doro": _yukimi(w, parts, r, snowy)
 		"kakehi": _kakehi(parts, p, snowy)
+		"bath_sign": _sign(parts, r, snowy)
+		"bath_bench": _bench_out(parts, r, snowy)
+		"oke_stack": _oke_stack(parts, r, snowy)
 		"yubune": _yubune(parts, r)
 		"kran": _kran(parts, r)
 		"milk_fridge": _milk_fridge(parts, mid)
@@ -511,3 +518,58 @@ static func _tube(st: SurfaceTool, a: Vector3, b: Vector3, r: float, sides := 6)
 		OutdoorProps.tri(st, a + o1, b + o2, a + o2, n)
 		OutdoorProps.tri(st, b, b + o2, b + o1, axis)
 		OutdoorProps.tri(st, a, a + o1, a + o2, -axis)
+
+
+## The name board on its two posts, facing +z (see the class note), snow on its cap.
+static func _sign(p: FarmProps.Parts, r: Rect2, snowy: bool) -> void:
+	var mid := Vector3(r.get_center().x, 0.0, r.get_center().y)
+	var post := p.st(PAVILION_DARK)
+	for s in [-0.34, 0.34]:
+		RoomProps._cube(post, mid + Vector3(s, 0, 0), Vector3(0.07, 1.02, 0.07))
+	var board := p.st(Color("b8a07c"))
+	RoomProps._cube(board, mid + Vector3(0, 0.5, 0.02), Vector3(0.62, 0.42, 0.04))
+	var ink := p.st(Color("2a2420"))
+	for col in 3:   # three columns of brushed marks down the board (not real writing)
+		var x := 0.16 - col * 0.16
+		var y := 0.84
+		for k in 3 - (col % 2):
+			var tall := 0.05 + 0.03 * ((col + k) % 2)
+			RoomProps._cube(ink, mid + Vector3(x + 0.015 * ((k + col) % 3 - 1), y - tall, 0.043), Vector3(0.07 - 0.02 * (k % 2), tall, 0.004))
+			y -= tall + 0.04
+	var cap := p.st(SHINGLE)
+	for s in [-1.0, 1.0]:   # the little gable over it: two short slopes
+		var a := mid + Vector3(0.0, 1.06, -0.1)
+		var b := mid + Vector3(0.0, 1.06, 0.12)
+		var e := Vector3(0.42 * s, -0.08, 0.0)
+		OutdoorProps.tri(cap, a, b, b + e, Vector3(0.3 * s, 1, 0).normalized())
+		OutdoorProps.tri(cap, a, b + e, a + e, Vector3(0.3 * s, 1, 0).normalized())
+	if snowy:
+		var sn := p.st(FarmProps.Parts.SNOW)
+		RoomProps._cube(sn, mid + Vector3(0, 1.065, 0.01), Vector3(0.7, 0.03, 0.2))
+
+
+## A plank bench along x on two stone blocks, snow on its seat.
+static func _bench_out(p: FarmProps.Parts, r: Rect2, snowy: bool) -> void:
+	var mid := Vector3(r.get_center().x, 0.0, r.get_center().y)
+	var stone := p.st(Color(Shrine.STONE))
+	for s in [-0.3, 0.3]:
+		RoomProps._cube(stone, mid + Vector3(s, 0, 0), Vector3(0.16, 0.3, 0.24))
+	RoomProps._cube(p.st(PAVILION_WOOD), mid + Vector3(0, 0.3, 0), Vector3(0.86, 0.06, 0.3))
+	RoomProps._cube(p.st(PAVILION_WOOD.lightened(0.15)), mid + Vector3(0, 0.36, 0), Vector3(0.86, 0.005, 0.3))
+	if snowy:
+		RoomProps._cube(p.st(FarmProps.Parts.SNOW), mid + Vector3(0, 0.365, 0), Vector3(0.82, 0.03, 0.26))
+
+
+## Three cypress buckets upside down on a low wooden stand: two side by side, one on top of them.
+static func _oke_stack(p: FarmProps.Parts, r: Rect2, snowy: bool) -> void:
+	var mid := Vector3(r.get_center().x, 0.0, r.get_center().y)
+	RoomProps._cube(p.st(PAVILION_DARK), mid, Vector3(0.62, 0.1, 0.36))
+	var at := [mid + Vector3(-0.15, 0.1, 0), mid + Vector3(0.15, 0.1, 0), mid + Vector3(0, 0.33, 0)]
+	for b in at:
+		# upside down: wide at the foot, the closed bottom on top
+		Shrine.lathe(p.st(OKE), b, [Vector2(0.14, 0.0), Vector2(0.115, 0.22), Vector2(0.0, 0.22)], 12)
+		for y in [0.04, 0.16]:
+			var rr := lerpf(0.14, 0.115, y / 0.22) + 0.006
+			Shrine.lathe(p.st(HOOP), b, [Vector2(rr, y), Vector2(rr, y + 0.022)], 12)
+	if snowy:
+		Shrine.lathe(p.st(FarmProps.Parts.SNOW), at[2] + Vector3(0, 0.22, 0), [Vector2(0.11, 0.0), Vector2(0.0, 0.03)], 10)

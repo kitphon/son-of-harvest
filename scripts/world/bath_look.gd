@@ -9,7 +9,7 @@ extends RefCounted
 
 # Its own names and colours (BathProps in 3D takes them from here): the flat view is loaded by
 # headless tests, which must not pull in the 3D scripts (they need the Game autoload).
-const KINDS: Array[String] = ["yubune", "kran", "milk_fridge", "basket_shelf", "bench", "getabako", "bath_noren", "bath_mural", "glass_door", "onsen", "bath_hut", "bamboo_screen", "oke", "bath_pavilion", "yukimi_doro", "kakehi"]
+const KINDS: Array[String] = ["yubune", "kran", "milk_fridge", "basket_shelf", "bench", "getabako", "bath_noren", "bath_mural", "glass_door", "onsen", "bath_hut", "bamboo_screen", "oke", "bath_pavilion", "yukimi_doro", "kakehi", "bath_sign", "bath_bench", "oke_stack"]
 const OKE := Color("d8b884")   # the bathing bucket's cypress
 const CEDAR := Color("6a4a34")
 const BARK := Color("4e3a2c")
@@ -30,6 +30,25 @@ static func draw(c: CanvasItem, kind: String, r: Rect2, p := {}) -> void:
 	match kind:
 		"kakehi":
 			_kakehi(c, r, p)
+		"bath_sign":   # the name board from above: its little roof between the two posts
+			var mid := r.get_center().floor()
+			c.draw_rect(Rect2(mid.x - 6, mid.y - 2, 12, 3), Color("5a4636"))
+			c.draw_rect(Rect2(mid.x - 6, mid.y - 2, 12, 1), Color("7a604a"))
+			c.draw_rect(Rect2(mid.x - 5, mid.y + 1, 1, 2), Color("3a2a1e"))
+			c.draw_rect(Rect2(mid.x + 4, mid.y + 1, 1, 2), Color("3a2a1e"))
+		"bath_bench":   # a plank seat along its cell
+			var mid := r.get_center().floor()
+			c.draw_rect(Rect2(mid.x - 6, mid.y - 2, 13, 5), Color("8a6444"))
+			c.draw_rect(Rect2(mid.x - 6, mid.y - 2, 13, 1), Color("a8825c"))
+			c.draw_rect(Rect2(mid.x - 6, mid.y, 13, 1), Color("6a4a32"))
+		"oke_stack":   # three buckets on a low stand, the top one over the two
+			var mid := r.get_center().floor()
+			c.draw_rect(Rect2(mid.x - 6, mid.y - 2, 12, 6), Color("6a4a32"))
+			for k in [-3, 3]:
+				c.draw_rect(Rect2(mid.x + k - 2, mid.y - 1, 5, 4), OKE)
+				c.draw_rect(Rect2(mid.x + k - 2, mid.y, 5, 1), OKE.darkened(0.4))
+			c.draw_rect(Rect2(mid.x - 2, mid.y - 4, 5, 4), OKE.lightened(0.1))
+			c.draw_rect(Rect2(mid.x - 2, mid.y - 3, 5, 1), OKE.darkened(0.4))
 		"yubune":
 			_tub(c, r)
 		"onsen":
