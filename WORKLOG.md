@@ -10,6 +10,23 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-28 — Kajika-yu: no bounce as they sit down
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (the user: "getting into the pool, at the very end the figure seems to bounce once before
+  it stops"): the standing picture's head is 30 px over its foot, the bathing picture's 20 (its
+  top row 12 of 32: measured from PlaceholderArt "player:front:walk:0" / "bathe:0", 0.04 units a
+  px), so going from the last standing key at -0.95 to the bathing pose at -0.34 lifted the head
+  0.21 units in one frame. The last standing key is now at -0.75 (head 0.45, the bathing head
+  0.46) and the one before it -0.6 (data/baths.json kajika sit_path); getting out runs the same
+  keys back.
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)` (test_baths: the last standing key's
+  head within 0.05 of the bathing pose's, worked out from the two pictures; half a cell past the
+  deep bed's edge already below the water's top). Smoke runs (title, `--demo`, town, mine 3, the
+  fall soak, getting in from `kajika_yu@8,3`, `kajika@start`): 0 ERROR lines; windowed
+  `--quit-after 150`: exit 0. Frames 70-97 of getting in from (5,4), cropped round the figure:
+  sinking, then sat with the face a little lower, no rise.
+- Left / next: the user's look; step 4b (Mio's event, Hachiro's job, kajika_built).
+
 ## 2026-11-27 — Kajika-yu: walked in standing to the waist, sat down at the seat
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done (the user, after the rings and sound: "the figure sliding on into the pool after stepping

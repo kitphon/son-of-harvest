@@ -964,7 +964,7 @@ func _kajika() -> void:
 				shallow_bathe = minf(shallow_bathe, PondShape.of(m, "onsen").sink(at))
 				sat_short = maxf(sat_short, g.soak_reach - path.x)
 			elif path.x >= g.soak_entry + 0.5:
-				on_top = maxf(on_top, g.soak_lift(false) - (BP.ONSEN_WATER - 0.1))   # sinking in as it deepens: the waist by the seat
+				on_top = maxf(on_top, g.soak_lift(false) - (BP.ONSEN_WATER - 0.05))   # sinking in as it deepens: the waist by the seat
 	g.soak_at = keep[0]
 	g.soak_facing = keep[1]
 	g.soak_reach = g.shore_reach(m, keep[0], keep[1])
@@ -974,6 +974,23 @@ func _kajika() -> void:
 	check(buried <= 0.0001, "getting in from every way, never below the ground over the bank's slope (%.3f)" % buried)
 	check(on_top <= 0.0001, "walking out over the deep bed they stand in the water to the waist, never on its top (the user saw them walk on it, then slide on sat down) (%.2f)" % on_top)
 	check(sat_short <= 0.0001, "sat down into the bathing pose only at the seat")
+	# Sitting down, the head stays where it was: the last standing key's head (its picture's top
+	# over its foot) at the bathing picture's head (the user saw a bounce as the pose changed).
+	var head_of := func(key: String) -> int:
+		var img: Image = PlaceholderArt.tex(key).get_image()
+		for y in img.get_height():
+			for x in img.get_width():
+				if img.get_pixel(x, y).a > 0.5:
+					return img.get_height() - y
+		return 0
+	var sk: Array = k.sit_path
+	var stand_key: Array = sk[-2]
+	var sit_key: Array = sk[-1]
+	var px: float = load("res://scripts/world3d/farm_world.gd").FIGURE_PX
+	var head_stand: float = float(stand_key[2]) + head_of.call("player:front:walk:0") * px
+	var head_sat: float = float(sit_key[2]) + head_of.call("player:front:bathe:0") * px
+	check(str(stand_key[3]) == "walk" and str(sit_key[3]) == "bathe" and absf(head_stand - head_sat) < 0.05,
+		"sitting down the head stays put: stood %.2f, sat %.2f" % [head_stand, head_sat])
 	check(shallow_bathe >= g.WADE_DEEP, "the bathing pose only over the deep bed (%.2f of the depth at the shallowest)" % shallow_bathe)
 	var start: Vector2 = g.bath_point()
 	var rings: Array[Vector2] = []
