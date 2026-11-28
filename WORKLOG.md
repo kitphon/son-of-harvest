@@ -10,6 +10,26 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-28 — Kajika-yu: the steam rising off the water in wisps
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (the user's second pick for the onsen): besides the mist's flat sheets lying on the water,
+  steam now rises from it in thin wisps. MistRules.wisp_spots: points half a cell apart over the
+  deep bed, clear of the rocks by 0.75 of their clear reach; MistRules.wisps: data/mist.json
+  `onsen` `wisps` count (40) times onsen_amount, so thicker by night, morning and in winter, each
+  slot living its own 4-7 s over and over from another spot, rising 1.2-2.2 units, swelling,
+  swaying, carried on the wind, fading in and out. SteamWisps (3D): one MultiMesh of upright
+  quads turned to the camera, foot on the water, a soft column broken into strands by a world
+  noise climbing with them, the steam's white, unshaded, no depth write. The first numbers
+  (34 wisps, 0.32-0.55 wide, alpha 0.42) barely read from the bath, so they went up to 40,
+  0.45-0.8 wide, alpha 0.62. 3D only, as the light shafts.
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)` (test_mist: the spots over the deep bed
+  clear of the rocks, none without steam, more with thicker steam, each within its rise, upright,
+  under alpha, faded at its foot and top, moving with time, built on maps with a hot spring).
+  Frames: fall 7:00 from the path and soaking (wisps rising by the rocks, the lantern and the far
+  shore), 21:00 (fainter under the night tint). Smoke runs (title, `--demo`, town, mine 3, a
+  winter dawn soak): 0 ERROR lines; windowed `--quit-after 150`: exit 0.
+- Left / next: 3, the lanterns' light on the water at night.
+
 ## 2026-11-28 — Kajika-yu: a bamboo spout pouring into the pool
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done (the user asked how to make the onsen better and picked my first three ideas; this is the
@@ -31,7 +51,7 @@ Agent: Claude Code (claude-opus-5-5) · Commit: this commit
   Frames from `kajika_yu@13,3` at 12:00, 3D and flat: the culm into its stone, the stream's arc,
   the foam and the rings. Smoke runs (title, `--demo`, town, mine 3, the spout in 3D and flat):
   0 ERROR lines; windowed `--quit-after 150` by the spout: exit 0.
-- Left / next: 2, the steam rising in wisps; 3, the lanterns' light on the water at night.
+- Left / next: 2, the steam rising in wisps (done next); 3, the lanterns' light on the water at night.
 
 ## 2026-11-28 — Kajika-yu: no small shore stones at a big rock's foot
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit

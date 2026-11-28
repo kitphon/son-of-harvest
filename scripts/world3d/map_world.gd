@@ -39,6 +39,8 @@ func build_steps(m: MapData) -> Array[Callable]:
 		steps.append(func() -> void: add_child(InsectLayer.new(map)))   # butterflies, dragonflies
 		steps.append(func() -> void: add_child(CicadaLayer.new(map)))   # cicadas on the trees' trunks in summer
 		steps.append(func() -> void: add_child(MistLayer.new(map)))   # morning mist over the water and paddies
+		if map.looks.has("onsen"):
+			steps.append(func() -> void: add_child(SteamWisps.new(map, BathProps.ONSEN_WATER)))   # steam rising off the hot spring in wisps (Kajika-yu)
 		if float(map.shade.get("dapple", 0.0)) > 0.0:
 			steps.append(func() -> void: add_child(DappleLayer.new(map)))   # sunlight through the leaves (Kajika-yu)
 		if map.shade.has("shafts"):

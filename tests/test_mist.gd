@@ -24,9 +24,39 @@ func _run() -> void:
 	_gating()
 	_scenes()
 	_sheets()
+	_wisps()
 	await _views()
 	print("test_mist: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 	quit(1 if failures > 0 else 0)
+
+
+## The steam rising off a hot spring in wisps (2026-11-28; data/mist.json onsen wisps, SteamWisps).
+func _wisps() -> void:
+	var m: MapData = MapManager.data("kajika_yu")
+	var pond := PondShape.of(m, "onsen")
+	var spots: Array[Vector2] = MR.wisp_spots(pond)
+	var cfg: Dictionary = MR.config().onsen.wisps
+	var deep := spots.all(func(p: Vector2) -> bool: return pond.field(p) >= PondShape.DEEP)
+	var clear := true
+	for p in spots:
+		for rk in pond.rocks:
+			clear = clear and (rk[0] as Vector2).distance_to(p) >= float(rk[1]) * float(cfg.rock_share)
+	check(spots.size() > 20 and deep and clear, "wisps rise from spots over the hot spring's deep bed, clear of its rocks (%d)" % spots.size())
+	check(MR.wisp_spots(PondShape.of(MapManager.data("town"), "jade")).size() >= 0 and MR.wisps(spots, 0.0, 10.0).is_empty(), "no wisps without steam")
+	var full: Array[Dictionary] = MR.wisps(spots, 1.0, 10.0)
+	var half: Array[Dictionary] = MR.wisps(spots, 0.5, 10.0)
+	check(full.size() == int(cfg.count) and half.size() < full.size() and half.size() > 0, "thicker steam, more wisps (%d at full, %d at half)" % [full.size(), half.size()])
+	var ok := true
+	for w in full:
+		ok = ok and w.pos.y >= 0.0 and w.pos.y <= float(cfg.rise[1]) + 0.001 and w.alpha <= float(cfg.alpha) + 0.001 and w.size.y > w.size.x
+	check(ok, "each wisp over the water, no higher than its rise, upright and no stronger than alpha")
+	var young: Array = MR.wisps(spots, 1.0, 10.0).filter(func(w) -> bool: return w.rise < 0.02)
+	var old: Array = MR.wisps(spots, 1.0, 10.0).filter(func(w) -> bool: return w.rise > 0.98)
+	check(young.all(func(w) -> bool: return w.alpha < 0.1) and old.all(func(w) -> bool: return w.alpha < 0.1), "a wisp fades in as it leaves the water and out at its top")
+	var later: Array[Dictionary] = MR.wisps(spots, 1.0, 10.5)
+	check(later[0].pos.y != full[0].pos.y or later[0].pos.x != full[0].pos.x, "the wisps rise as time goes")
+	var mw := FileAccess.get_file_as_string("res://scripts/world3d/map_world.gd")
+	check("SteamWisps.new(" in mw and "looks.has(\"onsen\")" in mw, "maps with a hot spring build the 3D wisps")
 
 
 func check(ok: bool, what: String) -> void:

@@ -9,7 +9,8 @@ extends RefCounted
 ## Over a hot spring (Kajika-yu's water, look `onsen`; 2026-11-24, the user's photo of a forest
 ## onsen) the steam lies on the water all day and night (kind `onsen`, data/mist.json `onsen`): its
 ## own share by season and weather, a gentle swell by the clock, smaller, lower, slower sheets that
-## keep to the pool, counted apart from the river's so its mist never thins them.
+## keep to the pool, counted apart from the river's so its mist never thins them. And the steam
+## rising off it in thin wisps (`onsen` `wisps`, 2026-11-28: wisp_spots, wisps; SteamWisps in 3D).
 
 const DATA_PATH := "res://data/mist.json"
 const KINDS: Array[String] = ["water", "paddy"]
@@ -239,3 +240,69 @@ static func _sheets_of(scene: Dictionary, pick: Array[int], n: int, first: int, 
 			"kind": kind,
 		})
 	return out
+
+
+## Where steam wisps rise from on hot spring `pond`: points `spot_step` cells apart over its deep
+## bed (PondShape.DEEP), clear of its rocks by `rock_share` of their clear reach (PondShape.rocks).
+static func wisp_spots(pond: PondShape, cfg := {}) -> Array[Vector2]:
+	var out: Array[Vector2] = []
+	if pond == null:
+		return out
+	if cfg.is_empty():
+		cfg = config()
+	var w: Dictionary = (cfg.get("onsen", {}) as Dictionary).get("wisps", {})
+	var step := maxf(float(w.get("spot_step", 0.5)), 0.1)
+	var share := float(w.get("rock_share", 0.75))
+	var n := Vector2i((Vector2(pond.bounds.size) / step).ceil())
+	for j in n.y:
+		for i in n.x:
+			var p := Vector2(pond.bounds.position) + (Vector2(i, j) + Vector2(0.5, 0.5)) * step
+			if pond.field(p) < PondShape.DEEP:
+				continue
+			var clear := true
+			for rk in pond.rocks:
+				if (rk[0] as Vector2).distance_to(p) < float(rk[1]) * share:
+					clear = false
+					break
+			if clear:
+				out.append(p)
+	return out
+
+
+## The steam wisps showing at time `t` (seconds) at steam `amount` (0..1, onsen_amount) and `wind`
+## (0..1), rising from `spots` (wisp_spots): [{pos: Vector3 (cells x, units over the water, cells
+## z), size: Vector2 (units wide, tall), alpha, rise: 0..1 of its life}]. Each slot lives its own
+## life over and over, each time from another spot (a hash of the slot and the round).
+static func wisps(spots: Array[Vector2], amount: float, t: float, wind := 0.0, cfg := {}) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	if spots.is_empty() or amount <= 0.0:
+		return out
+	if cfg.is_empty():
+		cfg = config()
+	var w: Dictionary = (cfg.get("onsen", {}) as Dictionary).get("wisps", {})
+	var n := roundi(float(w.get("count", 0)) * clampf(amount, 0.0, 1.0))
+	var life: Array = w.get("life", [4.0, 6.0])
+	var rise: Array = w.get("rise", [1.0, 1.5])
+	var width: Array = w.get("width", [0.3, 0.5])
+	var along := wind_dir(cfg) * clampf(wind, 0.0, 1.0) * float(w.get("drift_wind", 0.0))
+	for i in n:
+		var span := lerpf(float(life[0]), float(life[1]), _h(i, 0, 1))
+		var u := t / span + _h(i, 0, 2)
+		var round_no := floori(u)
+		var f := u - round_no
+		var spot: Vector2 = spots[posmod(i * 7919 + round_no * 104729, spots.size())]
+		var drift := along * f * span + Vector2(sin(t * 0.9 + i * 1.7), 0.0) * float(w.get("sway", 0.0)) * f
+		var wide := lerpf(float(width[0]), float(width[1]), _h(i, round_no, 3)) * (1.0 + float(w.get("grow", 0.0)) * f)
+		var fade := smoothstep(0.0, maxf(float(w.get("fade_in", 0.2)), 0.01), f) * (1.0 - smoothstep(float(w.get("fade_out", 0.5)), 1.0, f))
+		out.append({
+			"pos": Vector3(spot.x + drift.x, lerpf(float(rise[0]), float(rise[1]), _h(i, round_no, 4)) * f, spot.y + drift.y),
+			"size": Vector2(wide, wide * float(w.get("tall", 1.8))),
+			"alpha": float(w.get("alpha", 0.4)) * fade * clampf(amount * 1.2, 0.0, 1.0),
+			"rise": f,
+		})
+	return out
+
+
+## A hash of a wisp's slot `i`, round `r` and use `k`, 0..1.
+static func _h(i: int, r: int, k: int) -> float:
+	return float(posmod(i * 7919 + r * 104729 + k * 31337 + (i * k * 613) % 997, 1000)) / 1000.0

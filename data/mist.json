@@ -46,6 +46,7 @@
 		"wobble": 0.15,
 		"alpha": 0.95,
 		"color": "f6f6f2",
-		"sky_share": 0.06
+		"sky_share": 0.06,
+		"wisps": {"_note": "Steam rising off the hot spring's open water in thin wisps (2026-11-28, the user asked for the pool to feel alive): `count` at full steam (times MistRules.onsen_amount, so thicker by night, in the morning and in winter), each rising `rise` [min, max] units over its `life` [min, max] seconds from a spot over the deep bed clear of the rocks (`spot_step` cells apart, `rock_share` of a rock's clear reach), `width` [min, max] units wide, `tall` times as tall, swelling by `grow`, swaying `sway` units, carried `drift_wind` cells a second at full wind along the mist's wind_dir, fading in over the first `fade_in` and out from `fade_out` of its life, at most `alpha`. 3D only (SteamWisps).", "count": 40, "life": [4.0, 7.0], "rise": [1.2, 2.2], "width": [0.45, 0.8], "tall": 1.9, "grow": 0.7, "sway": 0.14, "drift_wind": 0.35, "fade_in": 0.18, "fade_out": 0.5, "alpha": 0.62, "spot_step": 0.5, "rock_share": 0.75}
 	}
 }
