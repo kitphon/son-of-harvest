@@ -11,6 +11,10 @@ extends RefCounted
 ##  - `shrub`: a clipped mound of small leaves, faceted, lighter on top; in spring (days 16-30)
 ##    and the first days of summer the azalea's pink flowers dot it, in fall a few leaves redden,
 ##    in winter it is darker and snow lies on its top.
+##  - `fern` (2026-11-28, Kajika-yu's shore): a low clump of arching fronds, toothed along their
+##    edges, by season (GardenLook.FERN: yellowing in fall, low and brown in winter).
+##  - `stepping_stones` (`at`: [[x, z], ...] cells): flat stones set down the bank into the water,
+##    each at the ground's height there (the soft pond's slope), wet below the water's top.
 
 const KINDS := GardenLook.KINDS
 const SHAPES := GardenLook.SHAPES
@@ -36,12 +40,20 @@ static func prop(w: FarmWorld, p: Dictionary, mid: Vector3, map: MapData, season
 			var sink := (pond.sink(Vector2(mid.x, mid.z)) if pond != null else 1.0) if wet else 0.0
 			rock(w, str(p.get("shape", "low")), mid + Vector3(0, -SunkenGround.DROP * sink, 0), SunkenGround.DROP * sink, seed, snow)
 		"shrub": shrub(w, Rect2(Vector2(p.cell), Vector2(p.size)), season, day, seed, snow, bool(p.get("wild", false)))
+		"fern": fern(w, mid, season, seed, snow)
+		"stepping_stones": stepping_stones(w, p, map, snow)
 
 
 ## A garden rock of `shape` standing at `foot` (its base), `under` deep in the water (that much
 ## taller, so its top rises WET_SHOW of its height above the skin: low stones in the pond, 2026-11-16
 ## the user found them too tall): stones shaped like real rocks (stone), never a point.
 const WET_SHOW := 0.6
+## A rock standing in the water is wet and dark from its foot to WET_BAND over the water's top
+## (2026-11-28, the user's onsen: the rocks met the water with no line, as if set on glass).
+const WATER_TOP := WaterSurface.LIFT - SunkenGround.DROP
+const WET_BAND := 0.07
+const WET_DARK := 0.42
+static var wet_line := -INF   # the world height stone() darkens below while a rock in the water is built (rock, BathProps._yukimi)
 
 
 static func rock(w: FarmWorld, shape: String, foot: Vector3, under: float, seed: int, snow: bool) -> void:
@@ -55,6 +67,7 @@ static func rock(w: FarmWorld, shape: String, foot: Vector3, under: float, seed:
 	rng.seed = seed
 	var off := Vector3(rng.randf_range(-0.08, 0.08), 0, rng.randf_range(-0.08, 0.08))
 	var show := WET_SHOW if under > 0.0 else 1.0
+	wet_line = WATER_TOP + WET_BAND if under > 0.0 else -INF   # standing in the water: its foot darkened up past the waterline
 	match shape:
 		"tall":   # the tallest stone, still broad and rounded (the user, 2026-11-16: the bank's tall one was too pointed and high)
 			stone(p, sn, foot + off, 0.31, 0.38 * show + under, 0.26, seed + 1)
@@ -75,6 +88,7 @@ static func rock(w: FarmWorld, shape: String, foot: Vector3, under: float, seed:
 		_:   # low
 			stone(p, sn, foot + off, 0.33, 0.26 * show + under, 0.28, seed + 1)
 			stone(p, sn, foot + off + Vector3(0.25, 0, -0.18), 0.13, 0.09 * show + under, 0.11, seed + 2)
+	wet_line = -INF
 	p.commit(w)
 	if snow_parts != null:
 		snow_parts.commit(w)
@@ -100,6 +114,15 @@ static func stone(p: FarmProps.Parts, sn: SurfaceTool, at: Vector3, rx: float, h
 	var tilt := Vector2.from_angle(rng.randf() * TAU) * rng.randf_range(0.04, 0.12)
 	# rings from the foot up: [height share, reach share]; the last is the top face's rim
 	var rings := [[0.0, 0.94], [0.2, 1.0], [0.68, 0.9], [0.93, 0.66]]
+	var wet_share := (wet_line - at.y) / h if h > 0.0 else 0.0
+	if wet_share > 0.03 and wet_share < 0.88:   # a ring at the wet line, so the dark band ends level there
+		for ri in range(1, rings.size()):
+			if float(rings[ri][0]) > wet_share:
+				var a: Array = rings[ri - 1]
+				var b: Array = rings[ri]
+				var k := (wet_share - float(a[0])) / (float(b[0]) - float(a[0]))
+				rings.insert(ri, [wet_share, lerpf(float(a[1]), float(b[1]), k)])
+				break
 	var rows: Array = []
 	for ri in rings.size():
 		var ring: Array = rings[ri]
@@ -124,6 +147,8 @@ static func stone(p: FarmProps.Parts, sn: SurfaceTool, at: Vector3, rx: float, h
 		var col: Color = tones[2] if n.y > 0.72 else (tones[1] if n.y > 0.3 else tones[0])
 		if mossy and mossy_top and n.y > 0.72:
 			col = moss
+		if maxf(a.y, maxf(b.y, c.y)) <= wet_line + 0.001:   # below the wet line: dark, a little green
+			col = col.darkened(WET_DARK).lerp(Color("2e3a2a"), 0.2)
 		var j := 1.0 + rng.randf_range(-0.07, 0.07)
 		OutdoorProps.tri(p.tint(Color(col.r * j, col.g * j, col.b * j)), a, b, c, n)
 		if sn != null and n.y > 0.45:
@@ -224,3 +249,63 @@ static func _mound(p: FarmProps.Parts, sn: SurfaceTool, rng: RandomNumberGenerat
 			facet.call(rows[ri][k], rows[ri + 1][k2], rows[ri + 1][k], mini(ri, 2))
 	for k in SIDES:
 		facet.call(rows[3][k], rows[3][(k + 1) % SIDES], apex, 2)
+
+
+## A fern clump at `mid`: FRONDS arching out and down from the middle, each a strip toothed along
+## its edges (every other piece narrower), lighter toward its tip, both sides drawn; lower and
+## browner in winter (GardenLook.FERN / FERN_LOW), a dusting of snow on it then.
+const FRONDS := 9
+static func fern(w: FarmWorld, mid: Vector3, season: String, seed: int, snow: bool) -> void:
+	var p := FarmProps.Parts.new()
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed * 7 + 3
+	var tones: Array = GardenLook.fern_tones(season)
+	var tall := float(GardenLook.FERN_LOW.get(season, 1.0))
+	var centre := mid + Vector3(rng.randf_range(-0.12, 0.12), 0.0, rng.randf_range(-0.12, 0.12))
+	const STEPS := 7
+	for f in FRONDS:
+		var a := TAU * (f + rng.randf_range(-0.3, 0.3)) / FRONDS
+		var dir := Vector3(cos(a), 0, sin(a))
+		var side := Vector3(-dir.z, 0, dir.x)
+		var reach := rng.randf_range(0.32, 0.48)
+		var rise := rng.randf_range(0.22, 0.34) * tall
+		var at := func(t: float) -> Vector3: return centre + dir * reach * t + Vector3(0, rise * sin(PI * minf(t * 0.85, 1.0)) + 0.01, 0)
+		for k in STEPS:
+			var t0 := float(k) / STEPS
+			var t1 := float(k + 1) / STEPS
+			var w0 := 0.07 * (1.0 - t0 * 0.85) * (1.0 if k % 2 == 0 else 0.6)
+			var w1 := 0.07 * (1.0 - t1 * 0.85) * (0.6 if k % 2 == 0 else 1.0)
+			var a0: Vector3 = at.call(t0)
+			var a1: Vector3 = at.call(t1)
+			var col: Color = (tones[0] as Color).lerp(tones[2], t0) if f % 3 != 0 else (tones[1] as Color).lerp(tones[2], t0)
+			var st := p.tint(col, "plain")
+			var n := (a1 - a0).cross(side).normalized()
+			if n.y < 0.0:
+				n = -n
+			for face in [n, -n]:
+				OutdoorProps.tri(st, a0 - side * w0, a0 + side * w0, a1 + side * w1, face)
+				OutdoorProps.tri(st, a0 - side * w0, a1 + side * w1, a1 - side * w1, face)
+	if snow:
+		var sn := p.st(FarmProps.Parts.SNOW)
+		Shrine.lathe(sn, centre, [Vector2(0.26, 0.12 * tall), Vector2(0.12, 0.2 * tall), Vector2(0.0, 0.22 * tall)], 7)
+	p.commit(w)
+
+
+## Flat stones down a soft pond's bank (prop `p`'s `at`, cells), each at the ground's height at its
+## spot (the pond's slope: PondShape.sink), its foot a little sunk, wet below the water's top.
+static func stepping_stones(w: FarmWorld, p: Dictionary, map: MapData, snow: bool) -> void:
+	var parts := FarmProps.Parts.new()
+	var sn: SurfaceTool = parts.st(FarmProps.Parts.SNOW) if snow else null
+	var pond: PondShape = null
+	for s in PondShape.all_of(map):
+		if s.bounds.has_point(Vector2i(p.cell)):
+			pond = s
+	var k := 0
+	for spot in p.get("at", []):
+		var at := Vector2(spot[0], spot[1])
+		var y := -SunkenGround.DROP * (pond.sink(at) if pond != null else 0.0)
+		wet_line = WATER_TOP + WET_BAND if y < WATER_TOP else -INF
+		stone(parts, sn, Vector3(at.x, y - 0.04, at.y), 0.26, 0.12, 0.2, int(at.x * 53 + at.y * 29) + k, STONE, false)
+		k += 1
+	wet_line = -INF
+	parts.commit(w)

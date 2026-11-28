@@ -33,7 +33,7 @@ const COLORS := {
 	"potting_bench": Color("8a6a48"),
 	"yubune": Color("5fa6a2"), "kran": Color("d8e4e6"), "milk_fridge": Color("eeeee8"), "basket_shelf": Color("d8c088"),
 	"bench": Color("a07a52"), "getabako": Color("4a3424"), "bath_noren": Color("2f4a7a"), "bath_mural": Color("4e8a4a"), "glass_door": Color("c8e0e6"),
-	"onsen": Color("3f8a78"), "oke": Color("d8b884"), "bath_pavilion": Color("5a4636"), "yukimi_doro": Color("aaa498"), "kakehi": Color("6c7a3e"), "bath_hut": Color("4e3a2c"), "bamboo_screen": Color("a8a464"),
+	"onsen": Color("3f8a78"), "oke": Color("d8b884"), "bath_pavilion": Color("5a4636"), "yukimi_doro": Color("aaa498"), "kakehi": Color("6c7a3e"), "fern": Color("3e7630"), "stepping_stones": Color("6a675f"), "bath_hut": Color("4e3a2c"), "bamboo_screen": Color("a8a464"),
 }
 
 var map: MapData
@@ -484,6 +484,21 @@ func _draw_garden(p: Dictionary, r: Rect2) -> void:
 				_objects.draw_rect(Rect2(c + Vector2(rng.randi_range(-rx + 2, rx - 2), rng.randi_range(-ry + 1, ry)), Vector2.ONE), dot)
 		if snow:
 			blob(_objects, c + Vector2(-1, -1), rx - 2, ry - 3, [Color("e8eef2"), Color("f4f8fa"), Color("ffffff")], seed)
+		return
+	if str(p.kind) == "fern":   # a fern clump from above: fronds out from the middle in its season's greens
+		var tones: Array = GardenLook.fern_tones(season)
+		for k in 7:
+			var d := Vector2.from_angle(TAU * k / 7.0 + float(seed % 5))
+			for i in range(1, 5):
+				_objects.draw_rect(Rect2((c + d * i).floor(), Vector2.ONE), tones[1] if i < 3 else tones[2])
+		_objects.draw_rect(Rect2(c - Vector2(1, 1), Vector2(2, 2)), tones[0])
+		return
+	if str(p.kind) == "stepping_stones":   # each flat stone a small grey blob at its spot
+		var o := r.position - Vector2(p.cell) * T
+		var k := 0
+		for spot in p.get("at", []):
+			blob(_objects, (o + Vector2(spot[0], spot[1]) * T).floor(), 3, 2, GardenLook.STONE, seed + k)
+			k += 1
 		return
 	var sizes := {"tall": [4, 4], "flat": [6, 4], "pair": [5, 4], "low": [4, 3], "boulder": [8, 6], "granite": [7, 5]}
 	var shape := str(p.get("shape", "low"))

@@ -4,7 +4,7 @@ extends RefCounted
 ## them in 3D, MapView._draw_garden draws them flat): the kinds, the rock shapes, the colours and
 ## when the shrubs flower. Pure (no world classes), so the flat view loads without the 3D ones.
 
-const KINDS: Array[String] = ["garden_rock", "shrub"]
+const KINDS: Array[String] = ["garden_rock", "shrub", "fern", "stepping_stones"]
 const SHAPES: Array[String] = ["tall", "flat", "low", "pair", "boulder", "granite"]
 const GRANITE: Array[Color] = [Color("8c877c"), Color("aaa498"), Color("c6c0b2")]   # pale granite (Kajika-yu's shore)
 const STONE: Array[Color] = [Color("4e4c47"), Color("6a675f"), Color("85817a")]
@@ -21,6 +21,16 @@ const FALL_RED := Color("a8452c")
 ## A wild bush's leaves at their most turned in fall [dark, mid, light]: rust and amber, reached a
 ## share of the way from LEAF by each bush's own turn (wild_fall_tones).
 const FALL_WILD: Array[Color] = [Color("5c3a1c"), Color("8c5a28"), Color("b4823a")]
+## A fern clump's fronds [dark, mid, light] by season (2026-11-28, Kajika-yu's shore: ferns in the
+## rocks' crevices): fresh green spring and summer, yellowing in fall, dead brown and low in winter.
+const FERN := {"spring": [Color("356a2a"), Color("4c8a36"), Color("6aa846")], "summer": [Color("2c5a24"), Color("3e7630"), Color("56923e")],
+	"fall": [Color("5a5c26"), Color("7a7230"), Color("9a8a3c")], "winter": [Color("4a3c28"), Color("5e4c32"), Color("74603e")]}
+const FERN_LOW := {"winter": 0.55}   # how tall it stands by season (1 the rest)
+
+
+## A fern's tones in `season` (FERN).
+static func fern_tones(season: String) -> Array:
+	return FERN.get(season, FERN.summer)
 
 
 ## The rocks' moss on `day` (1..30) of `season` (MOSS_YEAR, eased round the year).

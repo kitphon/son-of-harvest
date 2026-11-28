@@ -10,6 +10,24 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-28 — Kajika-yu: the shore: wet rock feet, ferns, stepping stones
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (the user then asked for my ideas 4-6; this is 4, a more natural shore): a rock standing in
+  water is dark and a little green from its foot to 0.07 over the water's top (GardenProps.stone
+  inserts a ring at GardenProps.wet_line so the band ends level; rock() sets it when `under` > 0,
+  BathProps._yukimi for the lantern's rock; every soft pond's rocks, the temple's too). Seven fern
+  clumps (`fern`, not solid) in the crevices by the rocks round the shore: nine arching fronds
+  toothed along their edges, both sides drawn, GardenLook.FERN by season (yellowing in fall, low
+  and brown in winter, a little snow then). Three flat stepping stones (`stepping_stones` with
+  `at`, not solid) down the bank at the path's end where the player gets in, each at the slope's
+  height there, wet below the water. Both views (MapView._draw_garden; flat colours).
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)` (test_maps: the ferns on land and not in
+  the way, their season tones, the steps going down into the water and not solid, the wet band,
+  MapWorld routing the new kinds). Frames at 12:00 summer from `kajika_yu@pool`, `@12,16` and
+  the flat view at `@9,13`. Smoke runs (title, `--demo`, the temple pond, mine 3, winter snow at
+  the pool, the flat view in fall): 0 ERROR lines; windowed `--quit-after 150`: exit 0.
+- Left / next: 5, floating leaves and petals; 6, the name sign, a bench, stacked buckets.
+
 ## 2026-11-28 — Kajika-yu: the lanterns' light mirrored on the water at night
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done (the user's third pick for the onsen: its night water read as a flat cold blue): each lit

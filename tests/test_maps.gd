@@ -123,7 +123,7 @@ func _temple_garden() -> void:
 	var mv_src := FileAccess.get_file_as_string("res://scripts/world/map_view.gd")
 	check("p.kind in GardenLook.KINDS" in mv_src and "func _draw_garden" in mv_src, "the flat view draws the garden rocks and shrubs (no plain box)")
 	var mw_src := FileAccess.get_file_as_string("res://scripts/world3d/map_world.gd")
-	check("\"garden_rock\", \"shrub\": GardenProps.prop" in mw_src and "surroundings.water.set_looks" in mw_src, "MapWorld builds the garden pieces and gives the water skin its jade look")
+	check("\"garden_rock\", \"shrub\", \"fern\", \"stepping_stones\": GardenProps.prop" in mw_src and "surroundings.water.set_looks" in mw_src, "MapWorld builds the garden pieces and gives the water skin its jade look")
 
 
 ## The temple pond's soft shore (PondShape, 2026-11-16, the user: too square, a straight drop): the
@@ -467,6 +467,20 @@ func _soft_pond() -> void:
 		for b in range(a + 1, stones.size()):
 			gaps = gaps and (stones[a].pos as Vector2).distance_to(stones[b].pos) >= PondShape.STONE_GAP
 	check(stones.size() > 20 and ok_stones and gaps, "shore stones: %d along the waterline, each on it, none crowding another" % stones.size())
+	var ky: MapData = MapManager.data("kajika_yu")
+	var ferns := ky.props.filter(func(p) -> bool: return str(p.kind) == "fern")
+	var on_land := ferns.all(func(p) -> bool: return ky.tile(Vector2i(p.cell)) != "water" and not ky.is_solid(Vector2i(p.cell)))
+	check(ferns.size() >= 5 and on_land, "Kajika-yu: ferns in the crevices on the shore, never in the water or in the way (%d)" % ferns.size())
+	check(GardenLook.fern_tones("fall") != GardenLook.fern_tones("summer") and float(GardenLook.FERN_LOW.get("winter", 1.0)) < 1.0, "the ferns yellow in fall and lie low and brown in winter")
+	var steps: Array = ky.props.filter(func(p) -> bool: return str(p.kind) == "stepping_stones")
+	var pond_ky := PondShape.of(ky, "onsen")
+	var down := false
+	if steps.size() == 1:
+		var at: Array = steps[0].at
+		down = at.size() >= 3 and pond_ky.field(Vector2(at[0][0], at[0][1])) < pond_ky.field(Vector2(at[at.size() - 1][0], at[at.size() - 1][1]))
+	check(steps.size() == 1 and down and not bool(steps[0].get("solid", true)), "Kajika-yu: stepping stones down the bank where the path meets the water, not in the way")
+	var gp_src := FileAccess.get_file_as_string("res://scripts/world3d/garden_props.gd")
+	check("wet_line = WATER_TOP + WET_BAND if under > 0.0" in gp_src and "<= wet_line" in gp_src, "a rock standing in the water is dark and wet up past the water's top")
 	var onsen := PondShape.of(MapManager.data("kajika_yu"), "onsen")
 	var at_rock := 0
 	for st in onsen.shore_stones():

@@ -432,7 +432,9 @@ static func _yukimi(w: FarmWorld, p: FarmProps.Parts, r: Rect2, snowy: bool) -> 
 	var mid := Vector3(r.get_center().x, 0.0, r.get_center().y)
 	var bed := -SunkenGround.DROP
 	var sn: SurfaceTool = p.st(FarmProps.Parts.SNOW) if snowy else null
+	GardenProps.wet_line = GardenProps.WATER_TOP + GardenProps.WET_BAND   # its rock wet where it meets the water
 	GardenProps.stone(p, sn, mid + Vector3(0, bed, 0), 0.5, 0.5 - bed, 0.42, int(r.position.x) * 7 + 3, GRANITE, false)
+	GardenProps.wet_line = -INF
 	var base := mid + Vector3(0, 0.46, 0)
 	var stone := p.st(GRANITE[2])
 	for k in 3:   # three short splayed legs
