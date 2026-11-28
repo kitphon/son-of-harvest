@@ -263,7 +263,10 @@ func paint(base: Callable, grass: Callable, gravel := Callable()) -> Image:
 			elif f >= SHORE:
 				var u := (f - SHORE) / (DEEP - SHORE)
 				var edge := GRASS_U + _soft_noise(at) * 0.12   # where the grass gives way, a gentle wave
-				if u < edge:   # the grass going over the bank's top, darker the further down
+				if look == "onsen":   # the hot spring's bank: its ground darkening smoothly down into wet earth, no patches
+					var land: Color = grass.call(at) if water else land_at.call(at, p)
+					col = onsen_bank(land, u)
+				elif u < edge:   # the grass going over the bank's top, darker the further down
 					var land: Color = grass.call(at) if water else land_at.call(at, p)
 					col = land.darkened(0.28 * u / edge)
 				else:
@@ -272,6 +275,19 @@ func paint(base: Callable, grass: Callable, gravel := Callable()) -> Image:
 				col = grass.call(at) if water else land_at.call(at, p)
 			img.set_pixel(px, py, col)
 	return img
+
+
+## The hot spring's bank `u` of the way down (0 at the shoreline, 1 at the bed) over ground of
+## colour `land`: the land's own colour darkening smoothly, toward wet earth from ONSEN_EARTH_FROM
+## down and the water's line at the foot. No moss patches or pebbles (2026-11-28: the user saw the
+## sharp-edged moss patches on its steep slope as green triangles from the water, three times).
+const ONSEN_WET := Color("2e2a20")
+const ONSEN_EARTH_FROM := 0.35
+static func onsen_bank(land: Color, u: float) -> Color:
+	if u > 0.94:
+		return EDGE
+	var dark := land.darkened(0.45 * smoothstep(0.0, ONSEN_EARTH_FROM, u))
+	return dark.lerp(ONSEN_WET, smoothstep(ONSEN_EARTH_FROM, 0.94, u))
 
 
 ## The bank's colour `u` of the way down below the grass (0 at the grass's foot, 1 at the bed),

@@ -478,6 +478,14 @@ func _soft_pond() -> void:
 	var near_path := PondShape.of(ky, "onsen").shore_stones().filter(func(st) -> bool: return (st.pos as Vector2).distance_to(path_end) < PondShape.PATH_CLEAR)
 	check(near_path.is_empty(), "no small shore stones where the path meets the water (%d)" % near_path.size())
 	check(GardenLook.KINDS.size() == 3, "the garden kinds: rocks, shrubs, ferns")
+	var grass_c := Color("4a6a30")
+	var smooth := true
+	var last := 2.0
+	for k in 19:
+		var c := PondShape.onsen_bank(grass_c, k / 20.0)
+		smooth = smooth and c.get_luminance() <= last + 0.001 and not PondShape.MOSS.has(c)
+		last = c.get_luminance()
+	check(smooth and "PondShape.onsen_bank" not in "" and FileAccess.get_file_as_string("res://scripts/world/pond_shape.gd").contains("col = onsen_bank(land, u)"), "the hot spring's bank darkens smoothly down to the water, no moss patches (the user's green triangles)")
 	var starts: Array[int] = []   # where the water starts on each of the pool's rows: no step of more than two cells down its south-west shore
 	for y in range(7, 12):
 		for x in ky.w:

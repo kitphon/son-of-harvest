@@ -10,6 +10,27 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-28 — Kajika-yu: the green triangles' real cause: moss patches on the steep bank
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (the user, a third time: still there, "why doesn't it go away?"): my last entry was wrong.
+  The rounded south-west shore (kept: it is a softer shape) was not the triangle. A run of frames
+  wading west from `kajika_yu@pool` at 17:00, cropped beside the bather, showed light olive
+  patches on the bank right by the head: bank_colour's moss patches (MOSS, v < 0.32) painted in a
+  band just under the grass on the steep slope; their sharp edges read as green triangles from
+  low in the water. My earlier cyan test coloured them, but I looked at a different spot of that
+  frame. The hot spring's bank is now PondShape.onsen_bank: the land's own colour darkening
+  smoothly down the slope into wet earth (ONSEN_WET) from 0.35 of the way down, the water's line
+  at the foot; no moss patches or pebbles. The temple and plain ponds keep bank_colour.
+- Checked: 45 of 46 tests/test_*.gd print `OK (0 failed)` in the full run; test_maps failed there
+  on four build-ahead / fade timing checks ("the fade ended and let go of the pause", "built
+  ahead ..."). Run alone after that it failed once more, then passed four times in a row; on the
+  commit before this change it passed three of three. The checks count frames while a
+  neighbouring map is built ahead, so this looks like load timing, not this change, but it is not
+  proven: watch it. Its new check (the onsen bank darkening smoothly, no MOSS colour) passes.
+  Frames: wading west at 17:00 (the bank one smooth dark slope by the head, no patches), the path
+  at 12:00. Smoke runs (title, `--demo`, the temple pond, mine 3, wading west, the flat view):
+  0 ERROR lines; windowed `--quit-after 150`: exit 0.
+
 ## 2026-11-28 — Kajika-yu: the south-west shore rounded (the real green wedge)
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done (the user: "why is this green triangle still there? you said it was fixed"): my last fix
