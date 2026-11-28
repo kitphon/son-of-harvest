@@ -222,6 +222,7 @@ var _washes: Array[Dictionary] = []    # {pts, uvs, color} wall washes
 var _finishes: Array[Dictionary] = []  # {pts, uvs, color} earthen and board wall washes
 var _roofs: Array[Dictionary] = []     # {pts, uvs, color} the glass roofs' glow
 var _lamps: Array[Dictionary] = []     # {at: Vector2, px, color}
+var _mirrors: Array[Dictionary] = []   # {at: Vector2, px, color, seed}: the lamps' light on the water (reflection_of)
 var _lit: Array[Dictionary] = []       # {rect: Rect2, pos, normal} everything glowing on screen
 var _shields: Array[Dictionary] = []   # {pts, uvs, tex} figure quads drawn back
 var _warm: Array[Dictionary] = []      # {pts, uvs, tex, color (1, 1, 1, lift)} the figures' lift (FigureLift)
@@ -339,6 +340,7 @@ func _plan() -> void:
 	_finishes.clear()
 	_roofs.clear()
 	_lamps.clear()
+	_mirrors.clear()
 	_lit.clear()
 	_shields.clear()
 	_shielded.clear()
@@ -437,6 +439,7 @@ func _plan() -> void:
 			c.a = float(lamp.get("glow", 0.45)) * glow * seen
 			_lamps.append({"at": at, "px": px, "color": c})
 			_lit.append({"rect": Rect2(at - Vector2(px, px) / 2, Vector2(px, px)), "pos": l.pos, "normal": flat_back})
+		_plan_mirrors(w, cam, glow, lamp)
 	if _lit.is_empty():
 		return
 	for s in get_tree().get_nodes_in_group(FIGURES):
@@ -763,11 +766,88 @@ func _draw_glows() -> void:
 		_draw_window(p.win, p.pts, p.k, rules)
 	for l in _lamps:
 		glows.draw_texture_rect(_dot, Rect2(l.at - Vector2(l.px, l.px) / 2, Vector2(l.px, l.px)), false, l.color)
+	var rr: Dictionary = Game.light_data().get("reflections", {})
+	var t := Time.get_ticks_msec() / 1000.0
+	for m in _mirrors:
+		for d in mirror_dashes(m, t, rr):
+			glows.draw_texture_rect(_dot, d.rect, false, d.color)
 
 
 func _draw_figures() -> void:
 	for q in _shields:
 		figures.draw_colored_polygon(q.pts, Color.WHITE, q.uvs, q.tex)
+
+
+## The lamps of world `w` mirrored on its soft ponds' water (data/light.json "reflections"):
+## where each one's image lies on screen and how strong, for _draw_glows.
+func _plan_mirrors(w: FarmWorld, cam: Camera3D, glow: float, lamp: Dictionary) -> void:
+	var rules: Dictionary = Game.light_data().get("reflections", {})
+	var m: MapData = w.get("map") as MapData
+	if rules.is_empty() or m == null or w.lamps.is_empty():
+		return
+	var eye := cam.global_position
+	var top := WaterSurface.LIFT - SunkenGround.DROP   # the sunk water's top
+	var c := Color(str(rules.get("color", "ffc070")))
+	for look in rules.get("looks", []):
+		var pond := PondShape.of(m, str(look))
+		if pond == null:
+			continue
+		for i in w.lamps.size():
+			var l: Dictionary = w.lamps[i]
+			var r := reflection_of(l.pos, eye, top, pond, rules)
+			if r.is_empty() or cam.is_position_behind(r.at):
+				continue
+			var k: float = float(r.strength) * glow * ground_seen(l.pos, l.pos, eye, w.occluders)
+			if k <= 0.0:
+				continue
+			var at := cam.unproject_position(r.at)
+			var px := at.distance_to(cam.unproject_position(r.at + cam.global_basis.x)) * float(lamp.get("glow_size", 0.7))
+			var mc := c
+			mc.a = k
+			_mirrors.append({"at": at, "px": px, "color": mc, "seed": i})
+
+
+## Where lamp `lamp` (world) is seen mirrored on water whose top is `top` from eye `eye`: the point
+## on that plane on the line from the eye to the lamp mirrored under it, and its strength by
+## data/light.json "reflections" `rules`: over `pond`'s water faded in from its shoreline to its
+## deep bed, faded out with the distance from the lamp to `reach` cells. {} when it falls off the
+## water, past reach, or the lamp is under the water's top or the eye is.
+static func reflection_of(lamp: Vector3, eye: Vector3, top: float, pond: PondShape, rules: Dictionary) -> Dictionary:
+	if lamp.y <= top or eye.y <= top or pond == null:
+		return {}
+	var image := Vector3(lamp.x, 2.0 * top - lamp.y, lamp.z)
+	var at := eye + (image - eye) * ((eye.y - top) / (eye.y - image.y))
+	var flat := Vector2(at.x, at.z)
+	var reach := float(rules.get("reach", 4.0))
+	var off := flat.distance_to(Vector2(lamp.x, lamp.z))
+	var wet := smoothstep(PondShape.SHORE, PondShape.DEEP, pond.field(flat))
+	var k := float(rules.get("strength", 0.6)) * wet * (1.0 - smoothstep(reach * 0.5, reach, off))
+	if k <= 0.0:
+		return {}
+	return {"at": at, "strength": k}
+
+
+## Mirror `m`'s dashes at time `t` (seconds): [{rect, color}], a column of short warm dashes
+## through its image, longer toward the eye (down the screen), each its own width swaying with
+## `shimmer`, the outer ones fainter (data/light.json "reflections" `rules`).
+static func mirror_dashes(m: Dictionary, t: float, rules: Dictionary) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	var n := maxi(int(rules.get("dashes", 7)), 1)
+	var px: float = m.px
+	var length := px * float(rules.get("length", 2.6))
+	var wide := px * float(rules.get("width", 0.9))
+	var speed := float(rules.get("shimmer", 1.6)) * TAU
+	var dash := maxf(length / n, 2.0)
+	for k in n:
+		var u := (k + 0.5) / n                     # 0 at the top of the column, 1 at its foot
+		var y := -0.3 * length + u * length
+		var sway := sin(t * speed + k * 1.9 + float(m.seed) * 2.3)
+		var w := wide * (1.0 - 0.45 * absf(u - 0.3)) * (0.75 + 0.25 * sway)
+		var c: Color = m.color
+		c.a *= (1.0 - 0.7 * absf(u - 0.3)) * (0.7 + 0.3 * sin(t * speed * 1.3 + k * 2.7 + float(m.seed)))
+		var at: Vector2 = m.at + Vector2(sway * wide * 0.08, y)
+		out.append({"rect": Rect2(at - Vector2(w, dash * 1.6) / 2.0, Vector2(w, dash * 1.6)), "color": c})   # overlapping: one broken streak
+	return out
 
 
 ## How much of window `win` the eye at `eye` sees, 0..1: 0 when its wall is turned away or a

@@ -10,6 +10,28 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-28 — Kajika-yu: the lanterns' light mirrored on the water at night
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (the user's third pick for the onsen: its night water read as a flat cold blue): each lit
+  lamp (FarmWorld.lamps) over a soft pond of data/light.json `reflections` `looks` (onsen) is
+  mirrored on the water. NightLights.reflection_of: the lamp mirrored under the sunk water's top
+  (WaterSurface.LIFT - SunkenGround.DROP), the point where the eye's line to that image meets the
+  water, faded in from the shoreline to the deep bed (PondShape.SHORE..DEEP) and out past half of
+  `reach` (4 cells) from the lamp; {} off the water or under its top. mirror_dashes: a column of
+  `dashes` warm dashes through it, most of its `length` toward the eye (down the screen), each
+  swaying in width and flickering at `shimmer`. Drawn in the glows layer with the lamp glows,
+  after the night tint, so it stays warm. The first look (7 short pale dashes, ffc070, 0.6) read
+  as a dotted line, so: 10 overlapping dashes, 1.6 a dash tall, ffaa4a, 0.85. Now the
+  snow-viewing lantern out in the water throws a long warm streak toward the bather; the bank
+  lanterns' images fall on land or past reach. 3D only.
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)` (test_weather: the lantern in the water
+  seen mirrored on the water's top toward the eye within reach, none on land, from under the
+  water or at no strength, the dashes mostly toward the eye and no brighter than the light, the
+  shimmer moving, onsen in the looks). Frames at 21:00 soaking and from the path. Smoke runs
+  (title, `--demo`, the town at 21:00, mine 3, the night soak): 0 ERROR lines; windowed
+  `--quit-after 150`: exit 0.
+- Left / next: the user's look at all three in the game.
+
 ## 2026-11-28 — Kajika-yu: the steam rising off the water in wisps
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done (the user's second pick for the onsen): besides the mist's flat sheets lying on the water,
@@ -28,7 +50,7 @@ Agent: Claude Code (claude-opus-5-5) · Commit: this commit
   Frames: fall 7:00 from the path and soaking (wisps rising by the rocks, the lantern and the far
   shore), 21:00 (fainter under the night tint). Smoke runs (title, `--demo`, town, mine 3, a
   winter dawn soak): 0 ERROR lines; windowed `--quit-after 150`: exit 0.
-- Left / next: 3, the lanterns' light on the water at night.
+- Left / next: 3, the lanterns' light on the water at night (done next).
 
 ## 2026-11-28 — Kajika-yu: a bamboo spout pouring into the pool
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit

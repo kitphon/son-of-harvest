@@ -292,11 +292,39 @@ func _sprite(tex: Texture2D) -> Sprite3D:
 	return s
 
 
+## The lanterns' light mirrored on the hot spring's water at night (NightLights.reflection_of /
+## mirror_dashes, data/light.json "reflections"; 2026-11-28).
+func _lamp_mirrors() -> void:
+	var NL: GDScript = load("res://scripts/world3d/night_lights.gd")
+	var rr: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/light.json")).reflections
+	var m: MapData = MapManager.data("kajika_yu")
+	var pond := PondShape.of(m, "onsen")
+	var top := -0.34
+	var eye := Vector3(10.5, 6.0, 16.0)
+	var lamp := Vector3(6.5, 0.85, 5.5)   # the snow-viewing lantern's fire box out in the water
+	var r: Dictionary = NL.reflection_of(lamp, eye, top, pond, rr)
+	check(not r.is_empty() and absf(r.at.y - top) < 0.001 and float(r.strength) > 0.0, "a lantern over the water is seen mirrored on its top (%s)" % r)
+	if not r.is_empty():
+		var to_eye := Vector2(eye.x - lamp.x, eye.z - lamp.z).normalized()
+		var off := Vector2(r.at.x - lamp.x, r.at.z - lamp.z)
+		check(off.dot(to_eye) > 0.0 and off.length() < float(rr.reach), "its image lies toward the eye from under it, within reach")
+	check(NL.reflection_of(Vector3(1.5, 0.85, 14.5), eye, top, pond, rr).is_empty(), "no mirror where the image falls on land")
+	check(NL.reflection_of(Vector3(6.5, -0.5, 5.5), eye, top, pond, rr).is_empty(), "none from under the water's top")
+	check(NL.reflection_of(lamp, eye, top, PondShape.of(m, "onsen"), {"looks": ["onsen"], "strength": 0.0}).is_empty(), "none at no strength")
+	var dashes: Array[Dictionary] = NL.mirror_dashes({"at": Vector2(100, 100), "px": 20.0, "color": Color(1, 0.7, 0.3, 0.8), "seed": 0}, 1.0, rr)
+	var below := dashes.filter(func(d) -> bool: return d.rect.get_center().y > 100).size()
+	check(dashes.size() == int(rr.dashes) and below > dashes.size() / 2 and dashes.all(func(d) -> bool: return d.color.a <= 0.8 and d.color.a > 0.0), "the mirror a column of dashes, most toward the eye, none brighter than its light")
+	var later: Array[Dictionary] = NL.mirror_dashes({"at": Vector2(100, 100), "px": 20.0, "color": Color(1, 0.7, 0.3, 0.8), "seed": 0}, 1.3, rr)
+	check(later[0].rect != dashes[0].rect, "the mirror shimmers")
+	check("looks" in rr and "onsen" in rr.looks, "the hot spring's water mirrors the lanterns")
+
+
 func _finish(game_script: GDScript, fx: Dictionary) -> void:
 	await process_frame
 	_wind_by_weather(game_script, fx)
 	_sprite_light(game_script, fx)
 	_greenhouse_glow()   # NightLights reads the Game autoload: after the first frame
+	_lamp_mirrors()
 	_hud_icons_refined()
 	print("test_weather: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)
